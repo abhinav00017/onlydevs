@@ -16,6 +16,10 @@ import { FlatDevice } from "./FlatDevice";
  */
 const DeviceScene = dynamic(() => import("@/components/hero3d/DeviceScene"), { ssr: false });
 
+/** How long the hero waits for the 3D (visible time) before showing the flat device meanwhile, and before giving up. */
+const SLOW_MS = 2000;
+const GIVE_UP_MS = 8000;
+
 /** Where the hero's scroll progress turns the screen to the next business. */
 const SCROLL_STEPS = [0.12, 0.3, 0.48];
 
@@ -43,6 +47,7 @@ export function HeroStage({ className }: { className?: string }) {
   const [want3D, setWant3D] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [slow, setSlow] = useState(false);
   const flat = reduce || phone || failed || decided === "flat";
   const show3D = want3D && !flat;
 
@@ -82,7 +87,11 @@ export function HeroStage({ className }: { className?: string }) {
   // from showing first on desktops and then being replaced (the stage fades in whole instead).
   useEffect(() => {
     // Deferred a tick (not a frame: background tabs pause frames), so it never runs inside the commit.
-    const id = setTimeout(() => setDecided(reduce || phone || !canRun3D() ? "flat" : "3d"), 0);
+    const id = setTimeout(() => {
+      // If CSS has already revealed the flat phone (a slow script), keep it up until the 3D is ready.
+      if (performance.now() > SLOW_MS) setSlow(true);
+      setDecided(reduce || phone || !canRun3D() ? "flat" : "3d");
+    }, 0);
     return () => clearTimeout(id);
   }, [reduce, phone]);
 
@@ -109,22 +118,24 @@ export function HeroStage({ className }: { className?: string }) {
     };
   }, [decided, flat]);
 
-  // Safety net: if the 3D has not drawn after 8 seconds of the page being visible (slow network, a failed chunk),
-  // show the flat device. A background tab draws nothing, so the clock only runs while the page is visible.
+  // Never leave the hero without a device. While the 3D is on its way, a clock runs (only while the page is visible:
+  // a background tab draws nothing). After 2 s the flat device shows meanwhile, and the 3D fades in over it when ready.
+  // After 8 s (slow network, a failed chunk) the hero settles on the flat device for good.
+  const waiting = decided === "3d" && !flat && !ready;
   useEffect(() => {
-    if (!show3D || ready) return;
-    let id: ReturnType<typeof setTimeout> | undefined;
-    const arm = () => {
-      if (id !== undefined) clearTimeout(id);
-      id = document.visibilityState === "visible" ? setTimeout(() => setFailed(true), 8000) : undefined;
-    };
-    arm();
-    document.addEventListener("visibilitychange", arm);
-    return () => {
-      document.removeEventListener("visibilitychange", arm);
-      if (id !== undefined) clearTimeout(id);
-    };
-  }, [show3D, ready]);
+    if (!waiting) return;
+    let visibleFor = 0;
+    let last = Date.now();
+    const id = setInterval(() => {
+      const now = Date.now();
+      if (document.visibilityState === "visible") visibleFor += now - last;
+      last = now;
+      if (visibleFor >= SLOW_MS) setSlow(true);
+      if (visibleFor >= GIVE_UP_MS) setFailed(true);
+    }, 250);
+    return () => clearInterval(id);
+  }, [waiting]);
+  const showFlat = flat || (waiting && slow);
 
   return (
     <div ref={ref} className={className} data-hero-stage={show3D ? "3d" : flat ? "flat" : "pending"}>
@@ -132,9 +143,11 @@ export function HeroStage({ className }: { className?: string }) {
         aria-hidden
         className={cx(
           "transition-opacity duration-700",
-          // Before the check, desktops and tablets that may get 3D keep the flat phone hidden; phones and "reduce motion" show it at once.
-          decided === null && "sm:motion-safe:opacity-0",
-          !flat && decided !== null && "pointer-events-none opacity-0",
+          // Before the check (until the page's script has run), wider screens keep the flat phone hidden, so a desktop that
+          // gets 3D never shows a lone phone first. Phones and "reduce motion" show it at once. If the script is slow,
+          // CSS alone reveals it after 2 s (SLOW_MS), so the hero is never empty.
+          decided === null && "sm:motion-safe:animate-[hero-reveal_0.7s_ease-out_2s_forwards] sm:motion-safe:opacity-0",
+          !showFlat && decided !== null && "pointer-events-none opacity-0",
           "mx-auto w-[min(74vw,300px)]",
           "sm:absolute sm:bottom-[-14%] sm:left-1/2 sm:w-[min(36vw,280px)] sm:-translate-x-1/2",
           "lg:top-1/2 lg:right-[13%] lg:bottom-auto lg:left-auto lg:w-[clamp(240px,19vw,320px)] lg:translate-x-0 lg:-translate-y-[46%]",

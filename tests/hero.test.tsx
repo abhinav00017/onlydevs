@@ -186,6 +186,26 @@ describe("the header over the hero", () => {
     expect(header().getAttribute("data-scrolled")).toBe("true");
     expect(header().className).toMatch(/bg-canvas/);
   });
+
+  it("is solid straight away when the page loads already scrolled (a reload restores the position, no scroll event)", async () => {
+    const { HeaderShell } = await import("@/components/site/HeaderShell");
+    Object.defineProperty(window, "scrollY", { value: 400, configurable: true });
+    const { container } = render(<HeaderShell>nav</HeaderShell>);
+    expect(container.querySelector("header")?.getAttribute("data-scrolled")).toBe("true");
+  });
+
+  it("re-reads the position on pageshow, when scroll restoration lands after mount", async () => {
+    const { HeaderShell } = await import("@/components/site/HeaderShell");
+    Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+    const { container } = render(<HeaderShell>nav</HeaderShell>);
+    act(() => vi.advanceTimersByTime(400));
+    expect(container.querySelector("header")?.getAttribute("data-scrolled")).toBe("false");
+    Object.defineProperty(window, "scrollY", { value: 400, configurable: true });
+    act(() => {
+      window.dispatchEvent(new Event("pageshow"));
+    });
+    expect(container.querySelector("header")?.getAttribute("data-scrolled")).toBe("true");
+  });
 });
 
 describe("the flat device", () => {
@@ -197,8 +217,29 @@ describe("the flat device", () => {
     const wrapper = () => container.querySelector("[data-flat-device]")!.parentElement!;
     // Before the check: hidden on wider screens unless "reduce motion" (CSS), shown on phones.
     expect(wrapper().className).toMatch(/sm:motion-safe:opacity-0/);
-    act(() => vi.advanceTimersByTime(3000));
+    act(() => vi.advanceTimersByTime(10));
+    act(() => vi.advanceTimersByTime(1500));
     expect(wrapper().className).toMatch(/(^|\s)opacity-0/);
+  });
+
+  it("never leaves the hero empty: a slow 3D shows the flat device meanwhile, then gives up after 8 s", async () => {
+    stubMedia([]);
+    stubWebGL(true);
+    Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+    const { HeroStage } = await import("@/components/hero/HeroStage");
+    const { container, queryByTestId } = render(<HeroStage />);
+    const flatShown = () => !/(^|\s)opacity-0/.test(container.querySelector("[data-flat-device]")!.parentElement!.className);
+    act(() => vi.advanceTimersByTime(10));
+    act(() => vi.advanceTimersByTime(1000));
+    // The 3D was asked for (the test stand-in never draws), and nothing is shown yet.
+    expect(queryByTestId("device-scene")).toBeTruthy();
+    expect(flatShown()).toBe(false);
+    act(() => vi.advanceTimersByTime(2000));
+    expect(flatShown()).toBe(true);
+    act(() => vi.advanceTimersByTime(6000));
+    expect(container.querySelector("[data-hero-stage]")?.getAttribute("data-hero-stage")).toBe("flat");
+    expect(queryByTestId("device-scene")).toBeNull();
+    expect(flatShown()).toBe(true);
   });
 
   async function renderStage() {
