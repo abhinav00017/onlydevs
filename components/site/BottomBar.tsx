@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { BOTTOM_BAR, CTA } from "@/lib/content";
 import { BLEED_X, cx } from "./ui";
 
-/** The slim bar that stays at the bottom of every page. Hidden on /book, where the form is the action. */
+/** The slim bar that stays at the bottom of every page. Hidden on /book, where the form is the action, and on /admin. */
 export function BottomBar() {
   const pathname = usePathname();
-  if (pathname === "/book") return null;
+  if (pathname === "/book" || pathname === "/admin") return null;
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line/80 bg-card/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
       <div className={cx("flex h-14 w-full items-center justify-between gap-3", BLEED_X)}>
