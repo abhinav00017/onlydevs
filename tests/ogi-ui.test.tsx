@@ -29,21 +29,20 @@ afterEach(() => {
 const openButton = () => screen.getByRole("button", { name: COPY.open });
 
 describe("Ogi chat button", () => {
-  it("is a purple circle with a white chat-bubble icon, never the octopus", () => {
+  it("shows plush Ogi on a white circle, never on solid purple", () => {
     stubFetch(() => ({}));
     render(<OgiLauncher />);
     const button = openButton();
-    for (const c of ["fixed", "size-14", "rounded-full", "bg-brand", "text-white"]) expect(button.className.split(/\s+/), c).toContain(c);
-    expect(button.querySelector("svg.lucide-message-circle")).toBeTruthy();
-    expect(button.querySelector("img")).toBeNull();
-    expect(button.innerHTML).not.toMatch(/ogi[\w-]*\.svg|octopus|mascot/i);
+    for (const c of ["fixed", "size-14", "rounded-full", "bg-card"]) expect(button.className.split(/\s+/), c).toContain(c);
+    expect(button.className.split(/\s+/)).not.toContain("bg-brand");
+    expect(button.querySelector("img")?.getAttribute("src")).toBe("/brand/ogi.svg");
   });
 
-  it("never uses the Ogi image anywhere in the chat code", () => {
+  it("uses only the plain Ogi image in the chat code, never an accessory version", () => {
     const dir = resolve(process.cwd(), "components/ogi");
     for (const file of readdirSync(dir)) {
       const text = readFileSync(resolve(dir, file), "utf8");
-      expect(text, file).not.toMatch(/\/brand\/ogi|ogi[\w-]*\.svg|<img|next\/image/);
+      expect(text, file).not.toMatch(/ogi-(clinic|cafe|realestate|owner)\.svg/);
     }
   });
 

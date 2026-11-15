@@ -1,14 +1,16 @@
 "use client";
 
-import { MessageCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import { PRODUCTS } from "@/lib/content";
+import { OgiMark } from "./OgiMark";
 
 /**
- * Ogi on the company site: a purple circle with a white chat icon, bottom right, on every page but /book.
- * Never the octopus image: Ogi is shown here as a chat, not a mascot (decisions.md, 15 Nov 2026).
+ * Ogi on the company site: plush Ogi on a white circle, bottom right, on every page but /book.
+ * Ogi appears only in the chat (this button and the panel), never in the hero or other sections (decisions.md).
+ * Per docs/ogi-image-guidelines.html: on a white circle, never on solid purple; 56px button, Ogi at about 40px.
  *
  * The panel's code loads only when the visitor first opens it (or points at the button), so the chat adds almost
  * nothing to a page's first load. Once loaded it stays mounted, so the chat survives closing and page changes.
@@ -56,9 +58,9 @@ export function OgiLauncher() {
         onClick={toggle}
         onPointerEnter={() => void loadPanel()}
         onFocus={() => void loadPanel()}
-        className={`fixed z-30 flex size-14 items-center justify-center rounded-full bg-brand text-white shadow-float transition-colors hover:bg-brand-strong ${BUTTON_PLACE}`}
+        className={`fixed z-30 flex size-14 items-center justify-center rounded-full bg-card text-brand shadow-float ring-1 ring-line transition-transform hover:scale-105 motion-reduce:hover:scale-100 ${BUTTON_PLACE}`}
       >
-        {isOpen ? <X aria-hidden strokeWidth={2} className="size-6" /> : <MessageCircle aria-hidden strokeWidth={2} className="size-6" />}
+        {isOpen ? <X aria-hidden strokeWidth={2} className="size-6" /> : <OgiMark size={40} />}
         <span className="sr-only">{isOpen ? COPY.close : COPY.open}</span>
       </button>
       {loaded ? <OgiPanel open={isOpen} onClose={close} /> : null}

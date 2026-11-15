@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowRight, Mail, MessageCircle, SendHorizontal, X } from "lucide-react";
+import { ArrowRight, Mail, SendHorizontal, X } from "lucide-react";
+import { OgiMark } from "./OgiMark";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import { CTA, PRODUCTS } from "@/lib/content";
@@ -126,8 +127,8 @@ export default function OgiPanel({ open, onClose }: { open: boolean; onClose: ()
       className="fixed inset-x-3 bottom-[calc(8.75rem+1px+env(safe-area-inset-bottom))] z-50 flex h-[min(36rem,calc(100dvh-10rem-env(safe-area-inset-bottom)))] flex-col overflow-hidden rounded-3xl border border-line bg-card shadow-float sm:inset-x-auto sm:right-6 sm:w-[24rem]"
     >
       <header className="flex items-center gap-3 border-b border-line px-4 py-3">
-        <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand text-white">
-          <MessageCircle strokeWidth={2} className="size-5" />
+        <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-soft">
+          <OgiMark size={32} />
         </span>
         <div className="min-w-0 flex-1">
           <h2 id={titleId} className="text-base font-bold text-ink">
@@ -277,8 +278,8 @@ function BookButton({ card }: { card: BookCard }) {
 function Resting() {
   return (
     <div data-ogi-resting="" className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-8 text-center">
-      <span aria-hidden className="flex size-16 items-center justify-center rounded-full bg-brand-soft text-brand">
-        <MessageCircle strokeWidth={2} className="size-7" />
+      <span aria-hidden className="flex size-20 items-center justify-center rounded-full bg-brand-soft">
+        <OgiMark size={56} />
       </span>
       <p className="text-lg font-bold text-ink">{COPY.restingTitle}</p>
       <p className="max-w-xs text-sm text-muted">{COPY.restingLine}</p>
