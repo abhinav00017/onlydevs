@@ -1,12 +1,13 @@
 "use client";
 
-import { useMotionValueEvent, useScroll } from "motion/react";
+import { useMotionValue } from "motion/react";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { BLEED_X, cx } from "@/components/site/ui";
 import { usePrefersReducedMotion } from "@/components/visuals/useCalm";
 import { HERO } from "@/lib/content";
 import { HERO_ORDER, useHeroCycle, verticalLabel } from "./cycle";
+import { useHeroPin } from "./HeroPin";
 import { PHONE_QUERY, canRun3D } from "./env";
 import { FlatDevice } from "./FlatDevice";
 
@@ -19,9 +20,6 @@ const DeviceScene = dynamic(() => import("@/components/hero3d/DeviceScene"), { s
 /** How long the hero waits for the 3D (visible time) before showing the flat device meanwhile, and before giving up. */
 const SLOW_MS = 2000;
 const GIVE_UP_MS = 8000;
-
-/** Where the hero's scroll progress turns the screen to the next business. */
-const SCROLL_STEPS = [0.12, 0.3, 0.48];
 
 function subscribePhone(onChange: () => void) {
   if (typeof window === "undefined" || !window.matchMedia) return () => {};
@@ -41,7 +39,12 @@ export function HeroStage({ className }: { className?: string }) {
   const phone = useSyncExternalStore(subscribePhone, readPhone, () => true);
   const ref = useRef<HTMLDivElement>(null);
   const [onScreen, setOnScreen] = useState(true);
-  const [state, dispatch] = useHeroCycle(!reduce && onScreen);
+  const pin = useHeroPin();
+  const pinned = pin?.pinned ?? false;
+  // Pinned: the scroll picks the business and items keep arriving on it. Not pinned (phones): the screen cycles on its own.
+  const [state, dispatch] = useHeroCycle(!reduce && onScreen, !pinned);
+  const idle = useMotionValue(0);
+  const progress = pin?.progress ?? idle;
   /** null until the browser has checked this device; then which stage it gets. */
   const [decided, setDecided] = useState<"flat" | "3d" | null>(null);
   const [want3D, setWant3D] = useState(false);
@@ -51,28 +54,11 @@ export function HeroStage({ className }: { className?: string }) {
   const flat = reduce || phone || failed || decided === "flat";
   const show3D = want3D && !flat;
 
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const step = useRef(0);
-  const stepOf = (v: number) => SCROLL_STEPS.filter((s) => v >= s).length;
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    if (reduce) return;
-    const next = stepOf(v);
-    if (next !== step.current) {
-      dispatch({ type: "shift", by: next - step.current });
-      step.current = next;
-    }
-  });
-  // A reload part-way down the page starts on the business that scroll position shows.
+  // The pinned scroll's step is the business on screen, from the first paint and after a reload mid-pin.
+  const step = pin?.step ?? 0;
   useEffect(() => {
-    if (reduce) return;
-    const next = stepOf(scrollYProgress.get());
-    if (next !== step.current) {
-      dispatch({ type: "shift", by: next - step.current });
-      step.current = next;
-    }
-    // Only on mount: later changes come through the scroll event above.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (pinned) dispatch({ type: "goto", index: step });
+  }, [pinned, step, dispatch]);
 
   // Pause the live screen while the hero is off-screen.
   useEffect(() => {
@@ -158,7 +144,7 @@ export function HeroStage({ className }: { className?: string }) {
       {show3D ? (
         <DeviceScene
           state={state}
-          progress={scrollYProgress}
+          progress={progress}
           onReady={() => setReady(true)}
           onFail={() => {
             setFailed(true);

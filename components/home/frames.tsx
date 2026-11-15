@@ -4,6 +4,7 @@ import { CTA, END, FAQ, FIX, HERO, HOW, KIT, PAIN, PRODUCTS, PROOF, WHO } from "
 import { SITE, demoUrl, getVertical } from "@/lib/site";
 import { BLEED_X, BookButton, ButtonLink, Container, ExternalLink, H2, LEAD, cx } from "@/components/site/ui";
 import { HeadlineTurns } from "@/components/hero/HeadlineTurns";
+import { HeroPin } from "@/components/hero/HeroPin";
 import { HeroStage } from "@/components/hero/HeroStage";
 import { KitBuilder } from "./KitBuilder";
 import { PainWords } from "./PainWords";
@@ -11,12 +12,16 @@ import { FaqList, FoundersNoteCard, IndustryGrid, ProductBlocks } from "./shared
 
 /** The home page frames, in storyboard order (docs/storyboard.html, section 3). Text renders on the server. */
 
-/* 1. The stress, and the wow: full-bleed, the live device as the stage, the words over it. */
+/*
+ * 1. The stress, and the wow: full-bleed, the live device as the stage, the words over it.
+ * Desktops and tablets: a pinned scroll scene. The section is tall, the stage is sticky, and scrolling walks the device
+ * through the four businesses before the page moves on. Phones and "reduce motion": one normal screen.
+ */
 export function HeroFrame() {
   return (
-    <section
-      aria-labelledby="hero-title"
-      className="relative -mt-16 overflow-hidden bg-[radial-gradient(120%_90%_at_72%_60%,#ffffff_0%,#f2f7f8_50%,#e4edef_100%)] sm:h-svh sm:min-h-[680px]"
+    <HeroPin
+      className="relative -mt-16 overflow-clip bg-canvas sm:min-h-[680px] sm:motion-safe:h-[360svh] sm:motion-reduce:h-svh"
+      stageClassName="relative bg-[radial-gradient(120%_90%_at_72%_60%,#ffffff_0%,#f2f7f8_50%,#e4edef_100%)] sm:sticky sm:top-0 sm:h-svh sm:min-h-[680px] sm:overflow-hidden"
     >
       <div className="relative z-10 sm:pointer-events-none sm:absolute sm:inset-0">
         {/* A soft wash behind the words, so they stay easy to read over the scene. */}
@@ -45,7 +50,7 @@ export function HeroFrame() {
       </div>
       <HeroStage className="relative mt-4 flex h-[30rem] flex-col overflow-hidden sm:absolute sm:inset-0 sm:mt-0 sm:h-auto" />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-b from-transparent to-canvas sm:h-16" />
-    </section>
+    </HeroPin>
   );
 }
 

@@ -5,7 +5,7 @@ import type { CycleState } from "./cycle";
 export type DeviceSceneProps = {
   /** The live screen: business on screen and the latest items. */
   state: CycleState;
-  /** Hero scroll progress, 0 at the top, 1 when the hero has scrolled away. The device turns with it. */
+  /** Pinned scroll progress: 0 when the pin starts, 1 when it releases. The device turns with it, one step per business. */
   progress: MotionValue<number>;
   /** Called after the first real frame, so the flat device can fade out. */
   onReady: () => void;

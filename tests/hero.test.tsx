@@ -1,9 +1,22 @@
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ARRIVALS_PER_VERTICAL, ARRIVE_MS, HERO_ORDER, cycleReducer, initialCycle, verticalLabel } from "@/components/hero/cycle";
+import {
+  ARRIVALS_PER_VERTICAL,
+  ARRIVE_MS,
+  HERO_ORDER,
+  PIN_HEIGHT_SVH,
+  TURN_FOR_VERTICAL,
+  cycleReducer,
+  initialCycle,
+  stepFromProgress,
+  turnFromProgress,
+  verticalLabel,
+} from "@/components/hero/cycle";
 import { canRun3D, resetWebGLProbe } from "@/components/hero/env";
 import { HERO_SCREENS } from "@/components/visuals/sample";
 import { HERO } from "@/lib/content";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 /**
  * The hero (decisions.md, 15 Nov 2026, "ONE wow moment"): the headline, the order the live screen walks through
@@ -168,6 +181,79 @@ describe("the live screen's cycle", () => {
       const laptop = render(<LaptopUI state={initialCycle(i)} />);
       expect(laptop.container.textContent).toContain("Sample data");
       laptop.unmount();
+    }
+  });
+});
+
+describe("the pinned hero (desktops and tablets)", () => {
+  it("gives each business one quarter of the pinned scroll, in order", () => {
+    const at = (p: number) => HERO_ORDER[stepFromProgress(p)];
+    expect([0, 0.2, 0.26, 0.49, 0.51, 0.74, 0.76, 1].map(at)).toEqual(["cafe", "cafe", "clinic", "clinic", "crm", "crm", "events", "events"]);
+    expect(stepFromProgress(-1)).toBe(0);
+    expect(stepFromProgress(2)).toBe(3);
+  });
+
+  it("turns the device early in each quarter, then holds it still, so each switch is clearly visible", () => {
+    expect(turnFromProgress(0)).toBe(0);
+    expect(turnFromProgress(0.25 * 0.3)).toBeGreaterThan(0);
+    expect(turnFromProgress(0.25 * 0.3)).toBeLessThan(1);
+    // The held part of each quarter.
+    expect(turnFromProgress(0.25 * 0.6)).toBeCloseTo(1);
+    expect(turnFromProgress(0.25 * 0.95)).toBeCloseTo(1);
+    expect(turnFromProgress(1)).toBeCloseTo(4);
+    let last = -1;
+    for (let p = 0; p <= 1.0001; p += 0.01) {
+      const t = turnFromProgress(p);
+      expect(t).toBeGreaterThanOrEqual(last - 1e-9);
+      last = t;
+    }
+  });
+
+  it("lets the scroll pick the business: items still arrive, but the screen never moves on by itself", () => {
+    let s = cycleReducer(initialCycle(), { type: "goto", index: 2 });
+    expect(HERO_ORDER[s.index]).toBe("crm");
+    for (let i = 0; i < 12; i++) s = cycleReducer(s, { type: "tick", advance: false });
+    expect(HERO_ORDER[s.index]).toBe("crm");
+    expect(s.arrivals).toBe(HERO_SCREENS.crm.incoming.length);
+    expect(new Set(s.items.map((item) => item.id)).size).toBe(s.items.length);
+  });
+
+  it("pairs each business with its headline turn, all four different", () => {
+    const turns = HERO_ORDER.map((id) => HERO.turns[TURN_FOR_VERTICAL[id]].from);
+    expect(turns).toEqual(["Paper orders", "Forgotten visits", "Lost leads", "Missed calls"]);
+  });
+
+  it("is a tall section with a sticky one-screen stage, in CSS (no jump), for wider screens with motion allowed", () => {
+    const frames = readFileSync(resolve(process.cwd(), "components/home/frames.tsx"), "utf8");
+    expect(frames).toContain(`sm:motion-safe:h-[${PIN_HEIGHT_SVH}svh]`);
+    expect(frames).toContain("sm:motion-reduce:h-svh");
+    expect(frames).toMatch(/stageClassName="[^"]*sm:sticky sm:top-0 sm:h-svh/);
+    // overflow: hidden on the section would break the sticky stage; clip does not.
+    expect(frames).toMatch(/className="relative -mt-16 overflow-clip/);
+  });
+
+  it("pins on a wide screen and syncs the headline with the business on screen", async () => {
+    stubMedia(["(min-width: 40rem)"]);
+    stubWebGL(false);
+    const { HeroFrame } = await import("@/components/home/frames");
+    const { container } = render(<HeroFrame />);
+    act(() => vi.advanceTimersByTime(400));
+    expect(container.querySelector("section")?.getAttribute("data-pinned")).toBe("true");
+    expect(container.querySelector("[data-active-turn]")?.textContent?.replace(/\s+/g, " ").trim()).toBe("Paper orders → online orders.");
+    // While pinned, time alone never changes the business or the headline.
+    act(() => vi.advanceTimersByTime(ARRIVE_MS * 8));
+    expect(container.querySelector("[data-screen='phone']")?.getAttribute("data-vertical")).toBe("cafe");
+    expect(container.querySelector("[data-active-turn]")?.textContent).toContain("Paper orders");
+  });
+
+  it("does not pin for reduce motion or on phones", async () => {
+    for (const media of [["(min-width: 40rem)", "(prefers-reduced-motion: reduce)"], ["(max-width: 640px)"]]) {
+      stubMedia(media);
+      stubWebGL(false);
+      const { HeroFrame } = await import("@/components/home/frames");
+      const { container, unmount } = render(<HeroFrame />);
+      expect(container.querySelector("section")?.getAttribute("data-pinned")).toBe("false");
+      unmount();
     }
   });
 });

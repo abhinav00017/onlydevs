@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "rea
 import { CanvasTexture, InstancedMesh, Object3D, PMREMGenerator, Vector3, type Group } from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { turnFromProgress } from "@/components/hero/cycle";
 import { LAPTOP_SCREEN, LaptopUI, PHONE_SCREEN, PhoneUI } from "@/components/hero/LiveScreens";
 import type { DeviceSceneProps } from "@/components/hero/types";
 import { panel, slab, squircleRect } from "./geometry";
@@ -163,8 +164,8 @@ function Rig({ progress, children }: { progress: DeviceSceneProps["progress"]; c
     const dt = clampDelta(delta);
     const p = Math.min(1, Math.max(0, progress.get()));
     if (stage.current) {
-      // Scroll: a slow, graceful turn as the hero leaves.
-      stage.current.rotation.y = damp(stage.current.rotation.y, -0.16 + p * 0.55, 2.6, dt);
+      // Pinned scroll: one calm turn per business, eased and then held (turnFromProgress), and damped on top.
+      stage.current.rotation.y = damp(stage.current.rotation.y, -0.04 - turnFromProgress(p) * 0.08, 2.4, dt);
     }
     // Pointer: the camera drifts a little, so the devices tilt in a subtle, damped way.
     const ptr = live.current.pointer;

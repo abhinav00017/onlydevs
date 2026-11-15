@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Fragment, useEffect, useState } from "react";
 import { usePrefersReducedMotion } from "@/components/visuals/useCalm";
+import { TURN_FOR_VERTICAL, verticalAt } from "./cycle";
+import { useHeroPin } from "./HeroPin";
 
 /** How long each turn of the headline stays, in ms. */
 export const TURN_MS = 3200;
@@ -16,18 +18,22 @@ type Turn = { from: string; to: string };
  * The server renders the first turn. Every turn sits in the same grid cell (hidden ones invisible),
  * so the line keeps the height of the longest turn and nothing below it moves.
  * Screen readers get all four turns once, as plain text. "Reduce motion": the first turn, still.
+ * In the pinned hero the scroll picks the turn, the one that goes with the business on the device.
  */
 export function HeadlineTurns({ turns, className }: { turns: readonly Turn[]; className?: string }) {
   const reduce = usePrefersReducedMotion();
   const [index, setIndex] = useState(0);
 
+  const pin = useHeroPin();
+  const pinned = pin?.pinned ?? false;
+
   useEffect(() => {
-    if (reduce) return;
+    if (reduce || pinned) return;
     const id = window.setInterval(() => setIndex((i) => (i + 1) % turns.length), TURN_MS);
     return () => window.clearInterval(id);
-  }, [reduce, turns.length]);
+  }, [reduce, pinned, turns.length]);
 
-  const active = reduce ? 0 : index;
+  const active = reduce ? 0 : pinned && pin ? TURN_FOR_VERTICAL[verticalAt(pin.step)] % turns.length : index;
   const turn = turns[active];
 
   return (
