@@ -42,3 +42,17 @@ metadata:
 - Eight Unsplash photos, all checked as "Unsplash License" (no Unsplash+), listed in lib/photos.ts. Loaded through next/image from images.unsplash.com only, at one fixed source size. No image files in the repo.
 - The hero photo uses next/image `preload` (Next 16 renamed `priority` to `preload`). No other photo preloads.
 - 15 Nov 2026: Abhinav: the photo version is good but not exciting. He chose ONE "wow" moment at the top of the home page: a real-looking 3D device (generic phone and laptop, not an iPhone) with our app running live on its screen (orders, bookings, leads arriving), turning as you scroll and switching verticals, plus a changing headline. 3D is allowed only for this hero device, loaded after the text; phones and reduce-motion get a flat device with the same living UI. Everything else stays photos plus floating UI.
+
+## 2026-11-15 (Abhinav, via the main session, during the hero device build)
+
+- The 3D must look natural, like a real product photo or render, never toy-like: realistic proportions, tight bevels, physical materials (clearcoat glass, satin metal, dark glass bezel), ACES or AgX tone mapping, a soft grounded contact shadow, calm eased motion. If it still reads as a toy, say so honestly instead of shipping it.
+- Quality bar: oryzo.ai, lusion.co/about, the learnwithzero.com hero. Product-photography light, a subtle surface under the devices with a soft shadow and a hint of reflection. If procedural geometry cannot reach that bar, say so and recommend a licensed CC0/CC-BY device model, to be asked of Abhinav before any download.
+- The hero is full-bleed: edge to edge, the whole first screen (100vw by 100svh), no side gutters, no rounded box. The 3D scene (the flat device on phones) is the stage; the headline, subline and two buttons sit over it, with a soft wash behind the words.
+- The header sits on top of the hero: see-through at the top of the page, solid once you scroll.
+- The photo sections below are full-width too: photos run to the screen edges, with the floating UI cards and the words over or beside them. Text columns keep a readable width.
+
+## 2026-11-15 (hero device build notes)
+
+- components/hero (no 3D): the headline turns, the live screens (PhoneUI, LaptopUI), the cycle (cafe, clinic, Business CRM, events), the flat CSS device and the capability check. components/hero3d (three, fiber, drei): the canvas, the procedural devices and the light. Only components/hero/HeroStage.tsx loads it, through next/dynamic with ssr: false. tests/visuals.test.tsx enforces this.
+- The live UI is real DOM on the screens (drei Html, transform, occlude "blending"), with a reflection-only glass layer over it.
+- HeroScene (the chaos photo) and ChaosStage are no longer on the home page. HeroScene and the hero photo stay in components/visuals and lib/photos.ts for now.

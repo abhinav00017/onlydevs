@@ -123,3 +123,119 @@ export const CALM_PHONE = {
     { text: "Orders ready for pickup" },
   ],
 } as const;
+
+/**
+ * The hero device: the live screens on the phone and the laptop, one set per business, in cycle order.
+ * `seed` is on screen at the start; `incoming` arrives one item at a time. `add` moves the live count.
+ * Every screen shows the "Sample data" tag: these are demo screens, not claims.
+ */
+export type HeroFeedItem = {
+  id: string;
+  title: string;
+  detail: string;
+  meta: string;
+  status: string;
+  /** How much this item adds to the live count. Default 1. */
+  add?: number;
+  /** CRM only: the stage the lead is now in, as an index into `stages`. */
+  stage?: number;
+};
+
+export type HeroScreen = {
+  app: string;
+  section: string;
+  nav: readonly string[];
+  count: { label: string; start: number; of?: number };
+  tiles: readonly { label: string; value: string }[];
+  stages?: readonly string[];
+  seed: readonly HeroFeedItem[];
+  incoming: readonly HeroFeedItem[];
+};
+
+export const HERO_SCREENS = {
+  tag: "Sample data",
+  time: "9:41",
+  today: "Today",
+  week: "This week",
+  cafe: {
+    app: "Bluebird Cafe",
+    section: "Orders",
+    nav: ["Today", "Orders", "Menu", "Customers", "Reports"],
+    count: { label: "Orders today", start: 38 },
+    tiles: [
+      { label: "Ordered online", value: "72%" },
+      { label: "Average wait", value: "6 min" },
+    ],
+    seed: [
+      { id: "cafe-0", title: "Order 1039", detail: "2 espresso, 1 lemon cake", meta: "Table 2", status: "Served" },
+      { id: "cafe-1", title: "Order 1040", detail: "1 pot of tea, 1 scone", meta: "Pickup", status: "Ready" },
+      { id: "cafe-2", title: "Order 1041", detail: "2 flat white, 1 almond croissant", meta: "Table 6", status: "Preparing" },
+    ],
+    incoming: [
+      { id: "cafe-3", title: "Order 1042", detail: "1 oat latte, 1 banana bread", meta: "Pickup, Hana", status: "New" },
+      { id: "cafe-4", title: "Order 1043", detail: "2 cappuccino, 2 toasties", meta: "Table 3", status: "New" },
+      { id: "cafe-5", title: "Order 1044", detail: "1 cold brew, 1 granola bowl", meta: "Delivery", status: "New" },
+    ],
+  },
+  clinic: {
+    app: "Northside Clinic",
+    section: "Bookings",
+    nav: ["Today", "Bookings", "Patients", "Reminders", "Reports"],
+    count: { label: "Bookings today", start: 14 },
+    tiles: [
+      { label: "Booked online", value: "9" },
+      { label: "Reminders sent", value: "12" },
+    ],
+    seed: [
+      { id: "clinic-0", title: "Check-up", detail: "Mateo Rossi", meta: "09:30", status: "Checked in" },
+      { id: "clinic-1", title: "Check-up", detail: "Lena Fischer", meta: "10:00", status: "Confirmed" },
+      { id: "clinic-2", title: "Follow-up", detail: "Kenji Watanabe", meta: "10:30", status: "Confirmed" },
+    ],
+    incoming: [
+      { id: "clinic-3", title: "Consultation", detail: "Sofia Marin", meta: "11:15", status: "Booked" },
+      { id: "clinic-4", title: "Check-up", detail: "Diego Alvarez", meta: "12:00", status: "Booked" },
+      { id: "clinic-5", title: "Follow-up", detail: "Aisha Rahman", meta: "14:30", status: "Booked" },
+    ],
+  },
+  crm: {
+    app: "Brightline Studio",
+    section: "Leads",
+    nav: ["Today", "Leads", "Pipeline", "Follow-ups", "Reports"],
+    count: { label: "Open leads", start: 23 },
+    tiles: [
+      { label: "Follow-ups today", value: "7" },
+      { label: "New this week", value: "11" },
+    ],
+    stages: ["New", "Contacted", "Proposal", "Won"],
+    seed: [
+      { id: "crm-0", title: "Lena Fischer", detail: "Call booked", meta: "Wed", status: "Contacted", stage: 1 },
+      { id: "crm-1", title: "Amara Okafor", detail: "Website form", meta: "Thu", status: "Contacted", stage: 1 },
+      { id: "crm-2", title: "Noah Becker", detail: "Referral", meta: "Fri", status: "Proposal", stage: 2 },
+    ],
+    incoming: [
+      { id: "crm-3", title: "Mateo Rossi", detail: "Moved to Proposal", meta: "now", status: "Proposal", stage: 2, add: 0 },
+      { id: "crm-4", title: "Chloe Martin", detail: "New lead, website form", meta: "now", status: "New", stage: 0 },
+      { id: "crm-5", title: "Kwame Mensah", detail: "Moved to Won", meta: "now", status: "Won", stage: 3, add: 0 },
+    ],
+  },
+  events: {
+    app: "Jazz Night",
+    section: "Tickets",
+    nav: ["Today", "Events", "Tickets", "Check-in", "Reports"],
+    count: { label: "Tickets sold", start: 186, of: 240 },
+    tiles: [
+      { label: "Checked in", value: "0" },
+      { label: "Doors open", value: "6:30 pm" },
+    ],
+    seed: [
+      { id: "events-0", title: "2 tickets", detail: "Sofia Marin", meta: "Row A", status: "Paid", add: 2 },
+      { id: "events-1", title: "2 tickets", detail: "Kwame Mensah", meta: "Row F", status: "Paid", add: 2 },
+      { id: "events-2", title: "4 tickets", detail: "Lena Fischer", meta: "Row C", status: "Paid", add: 4 },
+    ],
+    incoming: [
+      { id: "events-3", title: "2 tickets", detail: "Hana Kim", meta: "Row D", status: "Paid", add: 2 },
+      { id: "events-4", title: "1 ticket", detail: "Tom Becker", meta: "Row H", status: "Paid", add: 1 },
+      { id: "events-5", title: "3 tickets", detail: "Chloe Martin", meta: "Row B", status: "Paid", add: 3 },
+    ],
+  },
+} as const satisfies { tag: string; time: string; today: string; week: string } & Record<"cafe" | "clinic" | "crm" | "events", HeroScreen>;

@@ -33,7 +33,8 @@ The onlydevs company website, for onlydevs.co.in. Personal project of Abhinav an
 ## Style
 
 - onlydevs brand: light canvas (#F2F7F8 to #EAF2F3), one purple (#6F32D6), ink #14272F, Plus Jakarta Sans, big type, lots of white space.
-- No 3D, no WebGL. Real photos of business moments with our product's screens floating over them, built in HTML and CSS (`components/visuals`). Soft depth and motion, still for "reduce motion".
+- No 3D except the hero device. The home hero is a full-bleed 3D phone and laptop running our live UI (`components/hero3d`, loaded only through next/dynamic, desktops and tablets only). Phones, low-power devices, "reduce motion" and no WebGL get the flat CSS device (`components/hero`).
+- Everything else is real photos of business moments, full-bleed, with our product's screens floating over them, built in HTML and CSS (`components/visuals`). Soft depth and motion, still for "reduce motion".
 - Photos are free Unsplash photos only, loaded from images.unsplash.com and listed in `lib/photos.ts`. Premium and global; never fixed to one country. Sample data in the screens is made-up and neutral.
 
 ## How we work

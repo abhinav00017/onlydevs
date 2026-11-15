@@ -2,12 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { CTA, NAV } from "@/lib/content";
 import { SITE } from "@/lib/site";
+import { HeaderShell } from "./HeaderShell";
 import { MobileMenu } from "./MobileMenu";
 import { BookButton } from "./ui";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-canvas/85 backdrop-blur-md">
+    <HeaderShell>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-semibold"
@@ -34,6 +35,6 @@ export function Header() {
           <MobileMenu items={NAV} bookLabel={CTA.book} />
         </div>
       </div>
-    </header>
+    </HeaderShell>
   );
 }

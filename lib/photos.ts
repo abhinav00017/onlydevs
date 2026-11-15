@@ -39,7 +39,7 @@ export const PHOTOS: Record<PhotoId, Photo> = {
     page: "https://unsplash.com/photos/woman-paying-man-at-cafe-counter-TFm5TGa13IQ",
     photographer: "Ali Aziz",
     alt: "A customer pays at a busy cafe counter under warm pendant lights.",
-    usedIn: "Home hero (HeroScene)",
+    usedIn: "HeroScene only, which is off the home page since the 3D hero device (kept for later use)",
     color: "#33332f",
     focus: "60% 50%",
     licenceChecked: true,

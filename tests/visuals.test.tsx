@@ -7,8 +7,9 @@ import nextConfig from "@/next.config";
 import { FIX_PHOTOS, PHOTOS, PHOTO_LIST, UNSPLASH_QUERY } from "@/lib/photos";
 
 /**
- * The visuals rules (Abhinav, 15 Nov 2026: "Real photos + floating UI"):
- * no WebGL anywhere, photos only from Unsplash's image host, nothing fixed to India.
+ * The visuals rules (Abhinav, 15 Nov 2026: "Real photos + floating UI", then "ONE wow moment"):
+ * WebGL only for the hero device, in components/hero3d, loaded only through next/dynamic;
+ * photos only from Unsplash's image host; nothing fixed to India.
  */
 
 const root = process.cwd();
@@ -27,24 +28,69 @@ function sourceFiles(dir: string, out: string[] = []): string[] {
 
 const APP_FILES = [...sourceFiles("app"), ...sourceFiles("components"), ...sourceFiles("lib"), "next.config.ts"];
 
-describe("no WebGL", () => {
+describe("3D only for the hero device", () => {
+  const HERO3D = "components/hero3d/";
+  const THREE_IMPORT = /(from\s+|import\s*\(\s*|import\s+)["'](three|three\/[^"']*|@react-three\/[^"']*)["']/;
+  const outside = APP_FILES.filter((f) => !f.startsWith(HERO3D));
+
   it("has no components/three folder", () => {
     expect(existsSync(resolve(root, "components/three"))).toBe(false);
   });
 
-  it("imports nothing from components/three, three or React Three Fiber on any page or component", () => {
-    for (const file of APP_FILES) {
+  it("keeps the 3D code in components/hero3d", () => {
+    expect(APP_FILES.filter((f) => f.startsWith(HERO3D)).length).toBeGreaterThan(0);
+  });
+
+  it("imports three, @react-three/fiber and @react-three/drei only inside components/hero3d", () => {
+    for (const file of outside) {
       const text = read(file);
-      expect(text, file).not.toMatch(/components\/three/);
-      expect(text, file).not.toMatch(/from\s+["'](three|three\/[^"']*|@react-three\/[^"']*)["']/);
-      expect(text, file).not.toMatch(/import\(\s*["'](three|@react-three\/[^"']*)["']\s*\)/);
+      expect(text, file).not.toMatch(/components\/three\b/);
+      expect(text, file).not.toMatch(THREE_IMPORT);
     }
   });
 
-  it("does not depend on three, @types/three or any @react-three package", () => {
+  it("never imports components/hero3d statically: only next/dynamic may load it", () => {
+    for (const file of outside) {
+      const text = read(file);
+      // Static imports and re-exports, by alias or by relative path, including type-only ones.
+      expect(text, file).not.toMatch(/(from|import)\s+["'][^"']*hero3d[^"']*["']/);
+      // Any dynamic import of it must sit inside next/dynamic.
+      const dynamicUses = [...text.matchAll(/import\(\s*["'][^"']*hero3d[^"']*["']\s*\)/g)];
+      for (const use of dynamicUses) {
+        const before = text.slice(Math.max(0, (use.index ?? 0) - 40), use.index);
+        expect(before, file).toMatch(/dynamic\(\s*\(\)\s*=>\s*$/);
+      }
+    }
+  });
+
+  it("loads the 3D scene from one place only, with ssr: false", () => {
+    const users = outside.filter((f) => /hero3d/.test(read(f).replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "")));
+    expect(users).toEqual(["components/hero/HeroStage.tsx"]);
+    expect(read("components/hero/HeroStage.tsx")).toMatch(/dynamic\(\(\) => import\("@\/components\/hero3d\/DeviceScene"\), \{ ssr: false \}\)/);
+  });
+
+  it("downloads nothing in the 3D: no models, HDRs, textures or URLs", () => {
+    for (const file of APP_FILES.filter((f) => f.startsWith(HERO3D))) {
+      const text = read(file);
+      expect(text, file).not.toMatch(/useGLTF|useTexture|useFBX|TextureLoader|RGBELoader|EXRLoader|GLTFLoader|<Environment\b/);
+      expect(text, file).not.toMatch(/\.(glb|gltf|hdr|exr|ktx2|jpe?g|png|webp)["']/);
+      expect(text, file).not.toMatch(/https?:\/\//);
+    }
+  });
+
+  it("caps the pixel ratio and stops drawing off-screen", () => {
+    const canvas = read("components/hero3d/SceneCanvas.tsx");
+    expect(canvas).toMatch(/dpr=\{\[1, 1\.5\]\}/);
+    expect(canvas).toMatch(/frameloop=\{visible \? "always" : "never"\}/);
+    expect(canvas).toMatch(/webglcontextlost/);
+  });
+
+  it("depends only on three, @react-three/fiber, @react-three/drei and @types/three for 3D", () => {
     const pkg = JSON.parse(read("package.json")) as Record<string, Record<string, string> | undefined>;
     const names = [...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.devDependencies ?? {})];
-    for (const name of names) expect(name).not.toMatch(/^(three|@types\/three|@react-three\/.*)$/);
+    const threeish = names.filter((n) => /three/.test(n)).sort();
+    expect(threeish).toEqual(["@react-three/drei", "@react-three/fiber", "@types/three", "three"]);
+    expect(Object.keys(pkg.devDependencies ?? {})).toContain("@types/three");
   });
 });
 
