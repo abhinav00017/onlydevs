@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* onlydevs brand tokens. Light only: the brand is the light canvas with one purple. */
+:root {
+  --od-brand: #6f32d6;
+  --od-brand-strong: #5a24b8;
+  --od-brand-soft: #f1eafc;
+  --od-brand-line: #c9b3f1;
+  --od-ink: #14272f;
+  --od-muted: #5e676b;
+  --od-canvas: #f2f7f8;
+  --od-canvas-deep: #eaf2f3;
+  --od-line: #dbe5e7;
+  --od-card: #ffffff;
+  --od-ogi-outline: #3b1a78;
+}
+
+@theme inline {
+  --color-brand: var(--od-brand);
+  --color-brand-strong: var(--od-brand-strong);
+  --color-brand-soft: var(--od-brand-soft);
+  --color-brand-line: var(--od-brand-line);
+  --color-ink: var(--od-ink);
+  --color-muted: var(--od-muted);
+  --color-canvas: var(--od-canvas);
+  --color-canvas-deep: var(--od-canvas-deep);
+  --color-line: var(--od-line);
+  --color-card: var(--od-card);
+  --font-sans: var(--font-jakarta);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--od-canvas);
+  color: var(--od-ink);
+}
+
+::selection {
+  background: var(--od-brand-soft);
+  color: var(--od-ink);
+}
