@@ -4,8 +4,8 @@ import { BLOCK_IDS, businessSchema, sortBlocks, type BlockId, type BusinessId } 
 import { SITE } from "./site";
 
 /**
- * The "Book a free call" form. Until an email-sending key exists (decisions.md, 15 Nov 2026),
- * a valid request opens the visitor's email app with a prefilled message to SITE.email.
+ * The "Book a free call" form's checks. The form saves a valid request through POST /api/book, which runs these
+ * same checks (lib/requests/input.ts). If saving fails, the form offers a prefilled email to SITE.email instead.
  */
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 

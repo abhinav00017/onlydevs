@@ -8,11 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
+    "db:migrate": "tsx scripts/migrate.ts",
     "hero:poster": "node scripts/hero-poster.mjs",
     "test": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.121",
+    "@neondatabase/serverless": "^1.2.1",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "ai": "^7.0.173",
@@ -25,6 +27,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.14",
     "@tailwindcss/turbopack": "^4",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^22.20.5",
@@ -37,6 +40,7 @@
     "jsdom": "^29.1.1",
     "puppeteer-core": "^25.17.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.1.0"
   }
