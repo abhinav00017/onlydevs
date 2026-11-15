@@ -28,3 +28,10 @@ metadata:
 ## 2026-11-15 (Ogi's role, from Abhinav via the main session)
 
 - Ogi is not the site's guide and is not central. It appears only as one of our two products: on the home page Products section and on /products, as "an AI assistant for your website", shown with a mock chat card, not the mascot. "Try Ogi live" links to the clinic demo. No Ogi in the hero, fix scenes, stress-free frame, vertical cards, kit builder, end frame, header or bottom bar. Pages do not use Ogi3D or Ogi3DFallback. This overrides the storyboard's "Ogi as the guide".
+
+## 2026-11-15 (Abhinav, during the build, main session log)
+
+- Ogi is NOT the guide and NOT central on the company site, and there is NO 3D Ogi. Abhinav finds the plush Ogi's shape odd (its round shapes can read as a body). The 3D stars are the everyday clutter and the service objects only. Ogi appears only as one of our two products (an AI assistant for your website), shown as a chat-preview UI, not the mascot. No rounded paired shapes in any 3D that could read as a body. Whether to redesign Ogi's look is open.
+- 15 Nov 2026: the code-built 3D looked unnatural (toy-like primitives, flat materials, no real lighting) and its runtime is about 243 KB gzip. Abhinav chose "Real photos + floating UI": real photos of business moments (cafe counter, clinic desk, site visit, event crowd, sales desk) with our actual app screens floating over them in soft depth as you scroll. No WebGL; CSS depth and motion only. The 3D branch (7115a1a) is not merged; only reusable ideas (reduced-motion handling, kit block logic) may be kept.
+- 15 Nov 2026: the audience is global, not India-only. Photos and copy must look premium ("posh") and suit foreign clients too. Never fix anything to India.
+- 15 Nov 2026 (main session default): photos are free-licence stock (Unsplash), loaded from Unsplash's image service (no files downloaded into the repo), shown to Abhinav for approval before going live.
