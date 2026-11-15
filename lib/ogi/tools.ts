@@ -114,7 +114,8 @@ const BUILDERS: Record<ToolName, (ctx: ToolContext) => ToolSet[string]> = {
         // No kit chosen yet: start the form with the suggested kit for this kind of business (the visitor can change it).
         const kit = sortBlocks(blocks.length ? blocks : SUGGESTED_BLOCKS[kind]);
         ctx.pending.book = {
-          href: kitHref({ business: kind, blocks: kit }),
+          // source=ogi marks the saved request as coming through the chat (admin shows "via Ogi").
+          href: `${kitHref({ business: kind, blocks: kit })}&source=ogi`,
           label: CTA.book,
           kind: kindLabel(kind),
           blocks: kit.map((id) => blockName(id, kind)),

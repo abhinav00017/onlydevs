@@ -325,7 +325,7 @@ describe("Tools answer from the site's own data", () => {
 
   it("book_call without a kit fills in the suggested kit for that kind of business", async () => {
     const model = fakeModel(call("book_call", { kind: "clinic" }), say("Here you go."));
-    expect((await run("book", model)).book?.href).toBe(kitHref({ business: "clinic", blocks: sortBlocks(SUGGESTED_BLOCKS.clinic) }));
+    expect((await run("book", model)).book?.href).toBe(`${kitHref({ business: "clinic", blocks: sortBlocks(SUGGESTED_BLOCKS.clinic) })}&source=ogi`);
   });
 
   it("book_call refuses unknown blocks and kinds, so no button is shown", async () => {

@@ -29,7 +29,8 @@ export const BUTTON_PLACE = "right-4 bottom-[calc(4.5rem+1px+env(safe-area-inset
 
 export function OgiLauncher() {
   const pathname = usePathname();
-  const onBook = pathname === "/book";
+  // Ogi steps aside on the call form and on the private admin page.
+  const onBook = pathname === "/book" || pathname === "/admin" || pathname.startsWith("/admin/");
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
