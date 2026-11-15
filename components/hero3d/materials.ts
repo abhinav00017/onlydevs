@@ -159,3 +159,9 @@ export function glassOverlay(strength: number): MeshPhysicalMaterial {
   m.customProgramCacheKey = () => `glass-overlay-${strength}`;
   return m;
 }
+
+/** Steps the laptop back into shadow while the phone is the hero: 0 is normal, 1 is darkest. */
+export function dimLaptop(m: DeviceMaterials, dim: number) {
+  m.aluminium.envMapIntensity = 1 - 0.45 * dim;
+  m.trackpad.envMapIntensity = 1 - 0.45 * dim;
+}

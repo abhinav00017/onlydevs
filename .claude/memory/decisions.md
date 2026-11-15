@@ -56,3 +56,11 @@ metadata:
 - components/hero (no 3D): the headline turns, the live screens (PhoneUI, LaptopUI), the cycle (cafe, clinic, Business CRM, events), the flat CSS device and the capability check. components/hero3d (three, fiber, drei): the canvas, the procedural devices and the light. Only components/hero/HeroStage.tsx loads it, through next/dynamic with ssr: false. tests/visuals.test.tsx enforces this.
 - The live UI is real DOM on the screens (drei Html, transform, occlude "blending"), with a reflection-only glass layer over it.
 - HeroScene (the chaos photo) and ChaosStage are no longer on the home page. HeroScene and the hero photo stay in components/visuals and lib/photos.ts for now.
+
+## 2026-11-15 (Abhinav, via the main session: the pinned hero)
+
+- The hero is a pinned scroll scene on desktops and tablets (360svh tall, sticky stage). Phones and "reduce motion" are not pinned.
+- Each business is a clear, cinematic shot, eased like a product film, no bounce: Cafe (front three-quarter), Clinic (camera swings right, the phone is the hero, the laptop steps back into shadow), Business CRM (camera swings left and pushes in on the laptop's screen), Events (a lower angle, the phone turned to the viewer like a ticket), then a calm wide shot as the pin releases.
+- Screens change with a directional swipe; a huge, soft word per business sits behind the devices; a soft purple glow shifts per business.
+- Headline turns, in order with the businesses: Paper orders, Forgotten visits, Lost leads, Missed calls.
+- No shape change while loading: desktops and tablets show a poster of our own 3D scene at step 0, lined up with the canvas, and the live 3D fades in over it. If the 3D cannot run or fails, the poster stays. The flat CSS device is only for phones, "reduce motion" and no WebGL. Regenerate the poster with `npm run hero:poster` whenever the scene or its first shot changes.

@@ -9,13 +9,14 @@ import {
   cycleReducer,
   initialCycle,
   stepFromProgress,
-  turnFromProgress,
   verticalLabel,
 } from "@/components/hero/cycle";
+import { FRAMING, POSES, pixelsPerUnit, poseAt } from "@/components/hero/choreography";
+import { POSTER } from "@/components/hero/poster";
 import { canRun3D, resetWebGLProbe } from "@/components/hero/env";
 import { HERO_SCREENS } from "@/components/visuals/sample";
 import { HERO } from "@/lib/content";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 /**
@@ -81,10 +82,10 @@ describe("the headline", () => {
   it("keeps line one and turns line two through the four turns, in order", () => {
     expect(HERO.title).toBe("Running a business is hard.");
     expect(HERO.turns.map((t) => `${t.from} → ${t.to}`)).toEqual([
-      "Missed calls → answered.",
       "Paper orders → online orders.",
-      "Lost leads → followed up.",
       "Forgotten visits → reminded.",
+      "Lost leads → followed up.",
+      "Missed calls → answered.",
     ]);
   });
 
@@ -93,10 +94,10 @@ describe("the headline", () => {
     const { HeadlineTurns, TURN_MS } = await import("@/components/hero/HeadlineTurns");
     const { container } = render(<HeadlineTurns turns={HERO.turns} />);
     const active = () => container.querySelector("[data-active-turn]")?.textContent?.replace(/\s+/g, " ").trim();
-    expect(active()).toBe("Missed calls → answered.");
+    expect(active()).toBe("Paper orders → online orders.");
     // Screen readers get every turn once, as plain text.
     expect(container.querySelector(".sr-only")?.textContent).toBe(
-      "Missed calls, answered. Paper orders, online orders. Lost leads, followed up. Forgotten visits, reminded.",
+      "Paper orders, online orders. Forgotten visits, reminded. Lost leads, followed up. Missed calls, answered.",
     );
     act(() => vi.advanceTimersByTime(TURN_MS));
     expect(container.querySelector("[data-turn]")?.getAttribute("data-turn")).toBe("1");
@@ -186,27 +187,65 @@ describe("the live screen's cycle", () => {
 });
 
 describe("the pinned hero (desktops and tablets)", () => {
-  it("gives each business one quarter of the pinned scroll, in order", () => {
+  it("centres each business on its own pose (0, 25, 50, 75%) and switches half-way between, in order", () => {
     const at = (p: number) => HERO_ORDER[stepFromProgress(p)];
-    expect([0, 0.2, 0.26, 0.49, 0.51, 0.74, 0.76, 1].map(at)).toEqual(["cafe", "cafe", "clinic", "clinic", "crm", "crm", "events", "events"]);
+    expect([0, 0.12, 0.13, 0.25, 0.37, 0.38, 0.5, 0.63, 0.75, 1].map(at)).toEqual([
+      "cafe",
+      "cafe",
+      "clinic",
+      "clinic",
+      "clinic",
+      "crm",
+      "crm",
+      "events",
+      "events",
+      "events",
+    ]);
     expect(stepFromProgress(-1)).toBe(0);
     expect(stepFromProgress(2)).toBe(3);
   });
 
-  it("turns the device early in each quarter, then holds it still, so each switch is clearly visible", () => {
-    expect(turnFromProgress(0)).toBe(0);
-    expect(turnFromProgress(0.25 * 0.3)).toBeGreaterThan(0);
-    expect(turnFromProgress(0.25 * 0.3)).toBeLessThan(1);
-    // The held part of each quarter.
-    expect(turnFromProgress(0.25 * 0.6)).toBeCloseTo(1);
-    expect(turnFromProgress(0.25 * 0.95)).toBeCloseTo(1);
-    expect(turnFromProgress(1)).toBeCloseTo(4);
-    let last = -1;
-    for (let p = 0; p <= 1.0001; p += 0.01) {
-      const t = turnFromProgress(p);
-      expect(t).toBeGreaterThanOrEqual(last - 1e-9);
-      last = t;
+  it("holds each pose around its point, moves smoothly between, and ends on a wide shot", () => {
+    const same = (a: ReturnType<typeof poseAt>, b: ReturnType<typeof poseAt>) => {
+      for (const key of ["azimuth", "elevation", "distance", "screenX", "laptopRotationY", "laptopDim"] as const) expect(a[key]).toBeCloseTo(b[key], 9);
+      a.phonePosition.forEach((v, j) => expect(v).toBeCloseTo(b.phonePosition[j], 9));
+    };
+    for (const [i, p] of [0, 0.25, 0.5, 0.75, 1].entries()) {
+      same(poseAt(p), POSES[i]);
+      // Held a little either side.
+      same(poseAt(Math.max(0, p - 0.02)), POSES[i]);
+      same(poseAt(Math.min(1, p + 0.02)), POSES[i]);
     }
+    // Mid-move: between the two poses.
+    const mid = poseAt(0.125);
+    expect(mid.azimuth).toBeGreaterThan(POSES[0].azimuth);
+    expect(mid.azimuth).toBeLessThan(POSES[1].azimuth);
+    // No overshoot anywhere (eased in and out, no bounce): azimuth stays within its neighbours' range.
+    for (let p = 0; p <= 1; p += 0.005) {
+      const k = Math.min(3, Math.floor(p * 4));
+      const lo = Math.min(POSES[k].azimuth, POSES[k + 1].azimuth);
+      const hi = Math.max(POSES[k].azimuth, POSES[k + 1].azimuth);
+      const a = poseAt(p).azimuth;
+      expect(a).toBeGreaterThanOrEqual(lo - 1e-9);
+      expect(a).toBeLessThanOrEqual(hi + 1e-9);
+    }
+  });
+
+  it("makes every step a distinct shot: camera angle, distance, focus and device placement all change", () => {
+    const [cafe, clinic, crm, events, wide] = POSES;
+    // Clinic swings one way and makes the phone the hero; CRM swings the other way onto the laptop.
+    expect(Math.sign(clinic.azimuth)).toBe(-Math.sign(crm.azimuth));
+    expect(Math.abs(clinic.azimuth - crm.azimuth)).toBeGreaterThanOrEqual(50);
+    expect(clinic.focus.phone).toBe(1);
+    expect(clinic.laptopDim).toBeGreaterThan(0.5);
+    expect(crm.focus.laptop).toBe(1);
+    expect(crm.distance).toBeLessThan(0.7);
+    // Events is the lowest angle; the release is the widest.
+    expect(events.elevation).toBeLessThan(Math.min(cafe.elevation, clinic.elevation, crm.elevation));
+    expect(wide.distance).toBeGreaterThan(cafe.distance);
+    // The phone moves for every step.
+    const phones = POSES.slice(0, 4).map((p) => p.phonePosition.join(","));
+    expect(new Set(phones).size).toBe(4);
   });
 
   it("lets the scroll pick the business: items still arrive, but the screen never moves on by itself", () => {
@@ -294,38 +333,49 @@ describe("the header over the hero", () => {
   });
 });
 
-describe("the flat device", () => {
-  it("stays hidden on a desktop that will get the 3D, so the stage never shows a lone phone first", async () => {
+describe("the poster and the flat device", () => {
+  const flatWrapper = (c: HTMLElement) => c.querySelector("[data-flat-wrapper]")!;
+  const poster = (c: HTMLElement) => c.querySelector("[data-hero-poster]")!;
+
+  it("shows the poster (not a lone flat phone) on a desktop that will get the 3D, from the first paint", async () => {
     stubMedia([]);
     stubWebGL(true);
     const { HeroStage } = await import("@/components/hero/HeroStage");
     const { container } = render(<HeroStage />);
-    const wrapper = () => container.querySelector("[data-flat-device]")!.parentElement!;
-    // Before the check: hidden on wider screens unless "reduce motion" (CSS), shown on phones.
-    expect(wrapper().className).toMatch(/sm:motion-safe:opacity-0/);
+    // Before the check: CSS shows the poster on wider screens with motion allowed, and the flat device only elsewhere.
+    expect(poster(container).getAttribute("class")).toMatch(/sm:motion-safe:block/);
+    expect(flatWrapper(container).className).toMatch(/sm:motion-safe:hidden/);
     act(() => vi.advanceTimersByTime(10));
     act(() => vi.advanceTimersByTime(1500));
-    expect(wrapper().className).toMatch(/(^|\s)opacity-0/);
+    expect(flatWrapper(container).className).toMatch(/(^|\s)hidden/);
+    expect(poster(container).getAttribute("class")).not.toMatch(/hidden!/);
   });
 
-  it("never leaves the hero empty: a slow 3D shows the flat device meanwhile, then gives up after 8 s", async () => {
+  it("keeps the poster, never the flat phone, when the 3D has not drawn after 8 s", async () => {
     stubMedia([]);
     stubWebGL(true);
     Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
     const { HeroStage } = await import("@/components/hero/HeroStage");
     const { container, queryByTestId } = render(<HeroStage />);
-    const flatShown = () => !/(^|\s)opacity-0/.test(container.querySelector("[data-flat-device]")!.parentElement!.className);
     act(() => vi.advanceTimersByTime(10));
     act(() => vi.advanceTimersByTime(1000));
-    // The 3D was asked for (the test stand-in never draws), and nothing is shown yet.
     expect(queryByTestId("device-scene")).toBeTruthy();
-    expect(flatShown()).toBe(false);
-    act(() => vi.advanceTimersByTime(2000));
-    expect(flatShown()).toBe(true);
-    act(() => vi.advanceTimersByTime(6000));
-    expect(container.querySelector("[data-hero-stage]")?.getAttribute("data-hero-stage")).toBe("flat");
+    act(() => vi.advanceTimersByTime(9000));
+    expect(container.querySelector("[data-hero-stage]")?.getAttribute("data-hero-stage")).toBe("poster");
     expect(queryByTestId("device-scene")).toBeNull();
-    expect(flatShown()).toBe(true);
+    expect(flatWrapper(container).className).toMatch(/(^|\s)hidden/);
+    expect(poster(container).getAttribute("class")).not.toMatch(/hidden!|opacity-0/);
+  });
+
+  it("keeps the poster on a low-power desktop that has WebGL (4 cores or fewer)", async () => {
+    stubMedia([]);
+    stubWebGL(true);
+    Object.defineProperty(navigator, "hardwareConcurrency", { value: 4, configurable: true });
+    expect(canRun3D()).toBe(false);
+    const { container, queryByTestId } = await renderStage();
+    expect(container.querySelector("[data-hero-stage]")?.getAttribute("data-hero-stage")).toBe("poster");
+    expect(queryByTestId("device-scene")).toBeNull();
+    expect(flatWrapper(container).className).toMatch(/(^|\s)hidden/);
   });
 
   async function renderStage() {
@@ -352,14 +402,15 @@ describe("the flat device", () => {
     expect(screen()?.textContent).toBe(before);
   });
 
-  it("shows when the browser has no WebGL, and the 3D is never requested", async () => {
+  it("shows the flat device when the browser has no WebGL, hides the poster, and never asks for the 3D", async () => {
     stubMedia([]);
     stubWebGL(false);
     expect(canRun3D()).toBe(false);
     const { container, queryByTestId } = await renderStage();
     expect(container.querySelector("[data-hero-stage]")?.getAttribute("data-hero-stage")).toBe("flat");
     expect(queryByTestId("device-scene")).toBeNull();
-    expect(container.querySelector("[data-flat-device]")).toBeTruthy();
+    expect(flatWrapper(container).className).not.toMatch(/(^|\s)hidden/);
+    expect(poster(container).getAttribute("class")).toMatch(/hidden!/);
   });
 
   it("shows on phones, even with WebGL", async () => {
@@ -379,10 +430,26 @@ describe("the flat device", () => {
     expect(container.querySelector("[data-hero-stage]")?.getAttribute("data-hero-stage")).toBe("3d");
   });
 
-  it("keeps the flat device on low-power machines (4 cores or fewer)", () => {
-    stubMedia([]);
-    stubWebGL(true);
-    Object.defineProperty(navigator, "hardwareConcurrency", { value: 4, configurable: true });
-    expect(canRun3D()).toBe(false);
+});
+
+describe("the poster file (npm run hero:poster)", () => {
+  it("matches the scene's framing and the Cafe pose, so it lines up with the live canvas", () => {
+    expect(POSTER.wide.ppu).toBeCloseTo(pixelsPerUnit(POSTER.wide.ref.width, POSTER.wide.ref.height), 6);
+    expect(POSTER.tall.ppu).toBeCloseTo(pixelsPerUnit(POSTER.tall.ref.width, POSTER.tall.ref.height), 6);
+    expect(POSTER.wide.ref.width / POSTER.wide.ref.height).toBeGreaterThanOrEqual(FRAMING.wide.minAspect);
+    expect(POSTER.tall.ref.width / POSTER.tall.ref.height).toBeLessThan(FRAMING.wide.minAspect);
+    const cafe = POSES[0];
+    expect(POSTER.wide.focus.x).toBeCloseTo(((1 + cafe.screenX) / 2) * POSTER.wide.ref.width, 3);
+    expect(POSTER.wide.focus.y).toBeCloseTo(((1 - cafe.screenY) / 2) * POSTER.wide.ref.height, 3);
+    expect(POSTER.tall.focus.y).toBeCloseTo(((1 - (cafe.screenY + FRAMING.tall.shiftY)) / 2) * POSTER.tall.ref.height, 3);
+  });
+
+  it("exists in public/ and stays small", () => {
+    for (const shot of [POSTER.wide, POSTER.tall]) {
+      const file = resolve(process.cwd(), "public", shot.src.replace(/^\//, ""));
+      const bytes = statSync(file).size;
+      expect(bytes).toBe(shot.bytes);
+      expect(bytes).toBeLessThan(80 * 1024);
+    }
   });
 });

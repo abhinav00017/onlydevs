@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { PHOTO_CAPTIONS } from "@/lib/content";
 import { FIX_PHOTOS, PHOTOS } from "@/lib/photos";
 import { cx } from "@/components/site/ui";
 import { PhotoFill } from "./Photo";
@@ -23,26 +22,12 @@ const SCREENS: Record<FixStep, () => ReactNode> = {
  */
 export default function FixScene({ step, className }: FixSceneProps) {
   const photo = PHOTOS[FIX_PHOTOS[step]];
-  const caption = PHOTO_CAPTIONS[photo.id];
   const Screen = SCREENS[step];
   const mirrored = step % 2 === 1;
 
   return (
     <div className={cx("@container relative overflow-hidden", className)} data-fix-step={step}>
       <PhotoFill photo={photo} sizes="100vw" />
-      {caption ? (
-        <>
-          <div aria-hidden className="absolute inset-x-0 top-0 h-1/3 bg-linear-to-b from-ink/60 via-ink/20 to-transparent" />
-          <p
-            className={cx(
-              "absolute top-5 text-sm font-semibold text-white sm:top-7 sm:text-base",
-              mirrored ? "left-5 sm:left-8 lg:left-[6%]" : "right-5 sm:right-8 lg:right-[6%]",
-            )}
-          >
-            {caption}
-          </p>
-        </>
-      ) : null}
       <div
         aria-hidden
         style={{ fontSize: "clamp(8.5px, 2.4cqw, 15px)" }}

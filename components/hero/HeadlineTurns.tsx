@@ -14,7 +14,7 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 type Turn = { from: string; to: string };
 
 /**
- * Line two of the hero headline: "Missed calls → answered.", then the next turn, word by word.
+ * Line two of the hero headline: "Paper orders → online orders.", then the next turn, word by word.
  * The server renders the first turn. Every turn sits in the same grid cell (hidden ones invisible),
  * so the line keeps the height of the longest turn and nothing below it moves.
  * Screen readers get all four turns once, as plain text. "Reduce motion": the first turn, still.

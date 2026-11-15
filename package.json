@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
+    "hero:poster": "node scripts/hero-poster.mjs",
     "test": "vitest run"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "jsdom": "^29.1.1",
+    "puppeteer-core": "^25.17.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.1.0"

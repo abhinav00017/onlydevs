@@ -53,16 +53,6 @@
   }
 }
 
-/* The hero's flat phone, revealed by CSS alone if the page's script is slow (components/hero/HeroStage.tsx). */
-@keyframes hero-reveal {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 html {
   color-scheme: light;
 }

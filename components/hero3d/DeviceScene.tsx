@@ -2,15 +2,15 @@
 
 import { ContactShadows, Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
-import { CanvasTexture, InstancedMesh, Object3D, PMREMGenerator, Vector3, type Group } from "three";
+import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
+import { CanvasTexture, InstancedMesh, Object3D, PMREMGenerator, Vector3, type Camera, type Group } from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { turnFromProgress } from "@/components/hero/cycle";
+import { FRAMING, pixelsPerUnit, poseAt, type Pose } from "@/components/hero/choreography";
 import { LAPTOP_SCREEN, LaptopUI, PHONE_SCREEN, PhoneUI } from "@/components/hero/LiveScreens";
 import type { DeviceSceneProps } from "@/components/hero/types";
 import { panel, slab, squircleRect } from "./geometry";
-import { makeMaterials, type DeviceMaterials } from "./materials";
+import { dimLaptop, makeMaterials, type DeviceMaterials } from "./materials";
 import { SceneCanvas, clampDelta, useSceneLive, useScreenMounted, useScreenPortal } from "./SceneCanvas";
 
 /**
@@ -25,18 +25,20 @@ export default function DeviceScene({ state, progress, onReady, onFail, classNam
     <SceneCanvas className={className} camera={{ position: [0.6, 2.4, 9], fov: 24 }} screens={2} onReady={onReady} onFail={onFail}>
       <Studio />
       <Rig progress={progress}>
-        <Devices>
-          {(m) => (
-            <>
-              <Laptop m={m} position={[-0.55, 0, -0.35]} rotationY={0.34}>
-                <LaptopUI state={state} />
-              </Laptop>
-              <Phone m={m} position={[1.62, 0.96, 1.2]} rotation={[-0.07, 0.12, 0.03]}>
-                <PhoneUI state={state} />
-              </Phone>
-            </>
-          )}
-        </Devices>
+        {(pose) => (
+          <Devices>
+            {(m) => (
+              <>
+                <Laptop m={m} pose={pose}>
+                  <LaptopUI state={state} />
+                </Laptop>
+                <Phone m={m} pose={pose}>
+                  <PhoneUI state={state} />
+                </Phone>
+              </>
+            )}
+          </Devices>
+        )}
       </Rig>
       <Floor />
       {/* Two contact shadows, like a real photo: a tight one where the devices meet the desk, a wide soft one around them.
@@ -116,75 +118,138 @@ function Floor() {
 
 const COMPOSITION = { center: new Vector3(0.45, 0.85, 0.2), width: 4.9, height: 2.6 };
 const UP = new Vector3(0, 1, 0);
+/** The base camera angle the poses are measured from (the front three-quarter view the scene was first framed with). */
+const BASE_AZIMUTH = 5.7;
+/** Laptop screen centre, in the laptop's own space (lid open). */
+const LAPTOP_SCREEN_LOCAL = { y: 1.08, z: -1.25 };
+const DEG = Math.PI / 180;
 
 /** Damps `from` toward `to` like a critically damped spring: calm, never bouncy. */
 function damp(from: number, to: number, lambda: number, dt: number) {
   return from + (to - from) * (1 - Math.exp(-lambda * dt));
 }
 
-function Rig({ progress, children }: { progress: DeviceSceneProps["progress"]; children: ReactNode }) {
-  const stage = useRef<Group>(null);
+function clonePose(p: Pose): Pose {
+  return {
+    ...p,
+    focus: { ...p.focus },
+    phonePosition: [...p.phonePosition],
+    phoneRotation: [...p.phoneRotation],
+    laptopPosition: [...p.laptopPosition],
+  };
+}
+
+/** Moves `current` toward `target`, field by field, with the same calm damping. */
+function dampPose(current: Pose, target: Pose, lambda: number, dt: number) {
+  current.azimuth = damp(current.azimuth, target.azimuth, lambda, dt);
+  current.elevation = damp(current.elevation, target.elevation, lambda, dt);
+  current.distance = damp(current.distance, target.distance, lambda, dt);
+  current.focus.center = damp(current.focus.center, target.focus.center, lambda, dt);
+  current.focus.phone = damp(current.focus.phone, target.focus.phone, lambda, dt);
+  current.focus.laptop = damp(current.focus.laptop, target.focus.laptop, lambda, dt);
+  current.screenX = damp(current.screenX, target.screenX, lambda, dt);
+  current.screenY = damp(current.screenY, target.screenY, lambda, dt);
+  for (let i = 0; i < 3; i++) {
+    current.phonePosition[i] = damp(current.phonePosition[i], target.phonePosition[i], lambda, dt);
+    current.phoneRotation[i] = damp(current.phoneRotation[i], target.phoneRotation[i], lambda, dt);
+    current.laptopPosition[i] = damp(current.laptopPosition[i], target.laptopPosition[i], lambda, dt);
+  }
+  current.laptopRotationY = damp(current.laptopRotationY, target.laptopRotationY, lambda, dt);
+  current.laptopDim = damp(current.laptopDim, target.laptopDim, lambda, dt);
+}
+
+/**
+ * The camera, directed by the pinned scroll (components/hero/choreography.ts): one pose per business, eased in over
+ * the first part of each quarter, held, then a pull-back to a wide shot as the pin releases. Damped on top, so a fast
+ * wheel never makes it jump. The pointer adds a small, damped drift.
+ */
+function Rig({ progress, children }: { progress: DeviceSceneProps["progress"]; children: (pose: RefObject<Pose>) => ReactNode }) {
   const live = useSceneLive();
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
-  const look = useRef(new Vector3());
+  const pose = useRef<Pose>(clonePose(poseAt(progress.get())));
   const offset = useRef({ x: 0, y: 0 });
+  const v = useMemo(
+    () => ({
+      focus: new Vector3(),
+      dir: new Vector3(),
+      pos: new Vector3(),
+      aim: new Vector3(),
+      fwd: new Vector3(),
+      right: new Vector3(),
+      up: new Vector3(),
+      tmp: new Vector3(),
+    }),
+    [],
+  );
 
-  /** Framing: wide screens put the devices on the right (the words sit on the left); tall screens put them low. */
+  /** Framing: the distance that fits both devices; wide screens put them on the right, tall screens low. */
   const frame = useMemo(() => {
     const aspect = size.width / Math.max(size.height, 1);
-    const fov = 24;
-    const t = Math.tan(((fov / 2) * Math.PI) / 180);
-    const wide = aspect >= 1.15;
-    const fw = wide ? 0.66 : 0.9;
-    const fh = wide ? 0.82 : 0.42;
-    const d = Math.max(COMPOSITION.width / (fw * 2 * t * aspect), COMPOSITION.height / (fh * 2 * t));
-    const dir = new Vector3(0.1, 0.3, 1).normalize();
-    const position = COMPOSITION.center.clone().addScaledVector(dir, d);
-    const forward = COMPOSITION.center.clone().sub(position).normalize();
-    const right = new Vector3().crossVectors(forward, UP).normalize();
-    const up = new Vector3().crossVectors(right, forward).normalize();
-    // Where the devices' centre should land on screen, in -1..1.
-    const ndc = wide ? { x: 0.52, y: -0.06 } : { x: 0, y: -0.42 };
-    const aim = COMPOSITION.center
-      .clone()
-      .addScaledVector(right, -ndc.x * d * t * aspect)
-      .addScaledVector(up, -ndc.y * d * t);
-    return { position, aim, right, up, d };
+    const t = Math.tan(((FRAMING.fovDeg / 2) * Math.PI) / 180);
+    const wide = aspect >= FRAMING.wide.minAspect;
+    // The distance at which the focus has pixelsPerUnit() pixels per world unit (the poster scales the same way).
+    const d = size.height / (2 * t * pixelsPerUnit(size.width, size.height));
+    return { aspect, t, wide, d };
   }, [size.width, size.height]);
 
   useLayoutEffect(() => {
-    camera.position.copy(frame.position);
-    look.current.copy(frame.aim);
-    camera.lookAt(frame.aim);
-  }, [camera, frame]);
+    placeCamera(camera, pose.current, frame, v, offset.current, live.current.pointer, 0);
+  }, [camera, frame, v, live]);
 
-  const tmp = useMemo(() => new Vector3(), []);
   useFrame((_, delta) => {
     const dt = clampDelta(delta);
-    const p = Math.min(1, Math.max(0, progress.get()));
-    if (stage.current) {
-      // Pinned scroll: one calm turn per business, eased and then held (turnFromProgress), and damped on top.
-      stage.current.rotation.y = damp(stage.current.rotation.y, -0.04 - turnFromProgress(p) * 0.08, 2.4, dt);
-    }
-    // Pointer: the camera drifts a little, so the devices tilt in a subtle, damped way.
-    const ptr = live.current.pointer;
-    offset.current.x = damp(offset.current.x, ptr.x, 2.2, dt);
-    offset.current.y = damp(offset.current.y, ptr.y, 2.2, dt);
-    const k = frame.d * 0.035;
-    tmp.copy(frame.position).addScaledVector(frame.right, offset.current.x * k).addScaledVector(frame.up, offset.current.y * k * 0.6);
-    camera.position.copy(tmp);
-    camera.lookAt(look.current);
+    dampPose(pose.current, poseAt(progress.get()), 3, dt);
+    placeCamera(camera, pose.current, frame, v, offset.current, live.current.pointer, dt);
   });
 
-  // The stage turns around the middle of the composition, so the devices turn in place instead of sweeping sideways.
-  return (
-    <group position={[COMPOSITION.center.x, 0, COMPOSITION.center.z]}>
-      <group ref={stage}>
-        <group position={[-COMPOSITION.center.x, 0, -COMPOSITION.center.z]}>{children}</group>
-      </group>
-    </group>
-  );
+  return <group>{children(pose)}</group>;
+}
+
+type Scratch = { focus: Vector3; dir: Vector3; pos: Vector3; aim: Vector3; fwd: Vector3; right: Vector3; up: Vector3; tmp: Vector3 };
+
+/** Puts the camera where the pose says, looking at its focus, which lands where the pose wants it on screen. */
+function placeCamera(
+  camera: Camera,
+  p: Pose,
+  frame: { aspect: number; t: number; wide: boolean; d: number },
+  v: Scratch,
+  offset: { x: number; y: number },
+  pointer: { x: number; y: number },
+  dt: number,
+) {
+  // Focus: a blend of the composition, the phone and the laptop's screen, by the pose's weights.
+  const sum = p.focus.center + p.focus.phone + p.focus.laptop || 1;
+  const th = p.laptopRotationY;
+  const lx = p.laptopPosition[0] + LAPTOP_SCREEN_LOCAL.z * Math.sin(th);
+  const lz = p.laptopPosition[2] + LAPTOP_SCREEN_LOCAL.z * Math.cos(th);
+  v.focus
+    .set(0, 0, 0)
+    .addScaledVector(COMPOSITION.center, p.focus.center / sum)
+    .addScaledVector(v.tmp.set(p.phonePosition[0], p.phonePosition[1], p.phonePosition[2]), p.focus.phone / sum)
+    .addScaledVector(v.tmp.set(lx, p.laptopPosition[1] + LAPTOP_SCREEN_LOCAL.y, lz), p.focus.laptop / sum);
+  const az = (BASE_AZIMUTH + p.azimuth) * DEG;
+  const el = p.elevation * DEG;
+  v.dir.set(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+  const dist = frame.d * p.distance;
+  v.pos.copy(v.focus).addScaledVector(v.dir, dist);
+  v.fwd.copy(v.dir).negate();
+  v.right.crossVectors(v.fwd, UP).normalize();
+  v.up.crossVectors(v.right, v.fwd).normalize();
+  // Right of the words on wide screens; low on tall ones.
+  const sx = frame.wide ? p.screenX : 0;
+  const sy = frame.wide ? p.screenY : p.screenY + FRAMING.tall.shiftY;
+  v.aim
+    .copy(v.focus)
+    .addScaledVector(v.right, -sx * dist * frame.t * frame.aspect)
+    .addScaledVector(v.up, -sy * dist * frame.t);
+  // Pointer: a small, damped drift.
+  offset.x = damp(offset.x, pointer.x, 2.2, dt);
+  offset.y = damp(offset.y, pointer.y, 2.2, dt);
+  const k = dist * 0.03;
+  v.pos.addScaledVector(v.right, offset.x * k).addScaledVector(v.up, offset.y * k * 0.6);
+  camera.position.copy(v.pos);
+  camera.lookAt(v.aim);
 }
 
 /* ---------- Devices ---------- */
@@ -245,17 +310,15 @@ function LiveScreen({
 const PHONE = { w: 0.72, h: 1.54, d: 0.078, r: 0.105 };
 const PHONE_DISPLAY = { w: 0.672, h: (0.672 * PHONE_SCREEN.height) / PHONE_SCREEN.width, r: 0.082 };
 
-function Phone({
-  m,
-  position,
-  rotation,
-  children,
-}: {
-  m: DeviceMaterials;
-  position: [number, number, number];
-  rotation: [number, number, number];
-  children: ReactNode;
-}) {
+function Phone({ m, pose, children }: { m: DeviceMaterials; pose: RefObject<Pose>; children: ReactNode }) {
+  const group = useRef<Group>(null);
+  useFrame(() => {
+    const g = group.current;
+    const p = pose.current;
+    if (!g || !p) return;
+    g.position.set(p.phonePosition[0], p.phonePosition[1], p.phonePosition[2]);
+    g.rotation.set(p.phoneRotation[0], p.phoneRotation[1], p.phoneRotation[2]);
+  });
   const geo = useMemo(
     () => ({
       body: slab(PHONE.w, PHONE.h, PHONE.d, PHONE.r, 0.016),
@@ -270,7 +333,7 @@ function Phone({
   const front = PHONE.d / 2;
 
   return (
-    <group position={position} rotation={rotation}>
+    <group ref={group}>
       <mesh geometry={geo.body} material={m.frame} />
       <mesh geometry={geo.cover} material={m.glass} position={[0, 0, front - 0.001]} />
       <group position={[0, 0.005, 0]}>
@@ -297,8 +360,11 @@ const LID_OPEN = -0.26;
 /** The lid starts a little closed and settles open while the stage fades in: a small, calm move, not a pop. */
 const LID_START = 0.12;
 
-function Laptop({ m, position, rotationY, children }: { m: DeviceMaterials; position: [number, number, number]; rotationY: number; children: ReactNode }) {
+function Laptop({ m, pose, children }: { m: DeviceMaterials; pose: RefObject<Pose>; children: ReactNode }) {
   const lid = useRef<Group>(null);
+  const group = useRef<Group>(null);
+  const screen = useRef<HTMLDivElement>(null);
+  const lastDim = useRef(-1);
   const geo = useMemo(
     () => ({
       base: slab(LAPTOP.w, LAPTOP.depth, LAPTOP.base, LAPTOP.r, 0.03),
@@ -313,14 +379,24 @@ function Laptop({ m, position, rotationY, children }: { m: DeviceMaterials; posi
   const top = LAPTOP.base + 0.008;
   const hingeZ = -LAPTOP.depth / 2 + 0.07;
 
-  // The lid opens once, calmly, as the scene appears.
   useFrame((_, delta) => {
-    if (!lid.current) return;
-    lid.current.rotation.x = damp(lid.current.rotation.x, LID_OPEN, 1.7, clampDelta(delta));
+    // The lid opens once, calmly, as the scene appears.
+    if (lid.current) lid.current.rotation.x = damp(lid.current.rotation.x, LID_OPEN, 1.7, clampDelta(delta));
+    const p = pose.current;
+    if (!p || !group.current) return;
+    group.current.position.set(p.laptopPosition[0], p.laptopPosition[1], p.laptopPosition[2]);
+    group.current.rotation.set(0, p.laptopRotationY, 0);
+    // While the phone is the hero, the laptop steps back into shadow: darker metal, a dimmer and softer screen.
+    const dim = Math.round(p.laptopDim * 100) / 100;
+    if (dim !== lastDim.current) {
+      lastDim.current = dim;
+      dimLaptop(m, dim);
+      if (screen.current) screen.current.style.filter = dim > 0.01 ? `brightness(${(1 - 0.28 * dim).toFixed(3)}) blur(${(1.4 * dim).toFixed(2)}px)` : "";
+    }
   });
 
   return (
-    <group position={position} rotation={[0, rotationY, 0]}>
+    <group ref={group}>
       <mesh geometry={geo.base} material={m.aluminium} position={[0, LAPTOP.base / 2 + 0.008, 0]} rotation={[-Math.PI / 2, 0, 0]} />
       <Keyboard m={m} y={top} />
       <mesh geometry={geo.trackpad} material={m.trackpad} position={[0, top - 0.0018, 0.56]} rotation={[-Math.PI / 2, 0, 0]} />
@@ -333,7 +409,9 @@ function Laptop({ m, position, rotationY, children }: { m: DeviceMaterials; posi
         <mesh geometry={geo.bezel} material={m.glass} position={[0, LAPTOP.lid / 2, 0.001]} />
         <group position={[0, LAPTOP.lid / 2 + 0.03, 0]}>
           <LiveScreen name="laptop" width={LAPTOP_DISPLAY.w} height={LAPTOP_DISPLAY.h} radius={LAPTOP_DISPLAY.r} design={LAPTOP_SCREEN} z={0.0036}>
-            {children}
+            <div ref={screen} style={{ width: "100%", height: "100%" }}>
+              {children}
+            </div>
           </LiveScreen>
         </group>
         <mesh position={[0, LAPTOP.lid - 0.045, 0.0034]}>

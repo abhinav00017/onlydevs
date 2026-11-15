@@ -7,7 +7,6 @@
  * reviews or testimonials. tests/content.test.ts checks these.
  */
 import type { FixStep } from "@/components/visuals/types";
-import type { PhotoId } from "./photos";
 import type { BlockId, BusinessId } from "./kit";
 import type { VerticalId } from "./site";
 
@@ -41,13 +40,15 @@ export const HERO = {
   title: "Running a business is hard.",
   /** Line two of the headline turns through these, in order: the problem, then what it becomes. */
   turns: [
-    { from: "Missed calls", to: "answered." },
     { from: "Paper orders", to: "online orders." },
-    { from: "Lost leads", to: "followed up." },
     { from: "Forgotten visits", to: "reminded." },
+    { from: "Lost leads", to: "followed up." },
+    { from: "Missed calls", to: "answered." },
   ],
   /** The small label beside the device: which business the live screen shows. */
   showing: "On screen",
+  /** The big soft word behind the devices in the pinned hero, one per business. */
+  words: { cafe: "Cafe", clinic: "Clinic", crm: "CRM", events: "Events" },
   line: "onlydevs builds the software that puts your customers, orders, bookings and leads in one place, whatever your business.",
 } as const;
 
@@ -143,16 +144,6 @@ export const CALM = {
   title: "Everything in one place. Stress-free.",
   line: "Your customers, orders, bookings and leads, calm on one screen.",
 } as const;
-
-/** Short labels shown on the photos (components/visuals). The photos themselves are listed in lib/photos.ts. */
-export const PHOTO_CAPTIONS: Partial<Record<PhotoId, string>> = {
-  cafe: "A cafe counter",
-  clinic: "A clinic front desk",
-  property: "A property viewing",
-  assistant: "A customer, after hours",
-  events: "An event night",
-  team: "A sales team",
-};
 
 export const WHO = {
   title: "Built for businesses like yours.",

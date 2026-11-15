@@ -102,25 +102,18 @@ export function useHeroCycle(running: boolean, advance = true) {
 /** The pinned hero section is this tall; the stage stays on screen (sticky) for all but the last screen of it. */
 export const PIN_HEIGHT_SVH = 360;
 
-/** Which business the pinned scroll shows: one quarter of the pinned scroll each, in HERO_ORDER. */
+/**
+ * Which business the pinned scroll shows. Each business is centred on its own pose (progress 0, 0.25, 0.5, 0.75;
+ * components/hero/choreography.ts) and the screen switches half-way between two, mid camera move. Events stays on
+ * through the final pull-back.
+ */
 export function stepFromProgress(progress: number): number {
   const p = Math.min(1, Math.max(0, progress));
-  return Math.min(HERO_ORDER.length - 1, Math.floor(p * HERO_ORDER.length));
-}
-
-/**
- * How far the device has turned for a pinned progress, in steps (0 to 4). Each quarter turns in its first 55%
- * with a smooth ease, then holds still, so every switch is clearly visible.
- */
-export function turnFromProgress(progress: number): number {
-  const s = Math.min(1, Math.max(0, progress)) * HERO_ORDER.length;
-  const i = Math.min(HERO_ORDER.length - 1, Math.floor(s));
-  const t = Math.min(1, (s - i) / 0.55);
-  return i + t * t * (3 - 2 * t);
+  return Math.min(HERO_ORDER.length - 1, Math.floor(p * HERO_ORDER.length + 0.5));
 }
 
 /**
  * The headline turn that goes with each business while pinned, so the words and the screen agree
- * (indexes into HERO.turns: missed calls, paper orders, lost leads, forgotten visits).
+ * (indexes into HERO.turns: paper orders, forgotten visits, lost leads, missed calls).
  */
-export const TURN_FOR_VERTICAL: Record<HeroVerticalId, number> = { cafe: 1, clinic: 3, crm: 2, events: 0 };
+export const TURN_FOR_VERTICAL: Record<HeroVerticalId, number> = { cafe: 0, clinic: 1, crm: 2, events: 3 };

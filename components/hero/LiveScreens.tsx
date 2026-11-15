@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { cx } from "@/components/site/ui";
 import { DASHBOARD, HERO_SCREENS, type HeroFeedItem, type HeroScreen } from "@/components/visuals/sample";
 import { screenFor, verticalAt, type CycleState, type HeroVerticalId } from "./cycle";
@@ -39,7 +39,30 @@ const LAPTOP_TYPE: CSSProperties = { fontSize: `${(13 / LAPTOP_SCREEN.width) * 1
 
 type ScreenProps = { state: CycleState; className?: string };
 
+/**
+ * A change of business slides across the screen, in the direction of travel (forward: in from the right),
+ * on stacked layers, so the switch is obvious and the screen is never empty, however fast it changes.
+ */
+const SWIPE = {
+  enter: (dir: number) => ({ x: `${dir * 100}%` }),
+  center: { x: "0%" },
+  exit: (dir: number) => ({ x: `${dir * -100}%` }),
+};
+const SWIPE_TRANSITION = { duration: 0.7, ease: [0.65, 0, 0.35, 1] as const };
+
+/** +1 when the business moved forward in HERO_ORDER (wrapping), -1 when it moved back. */
+function useSwipeDirection(index: number): number {
+  const [last, setLast] = useState(index);
+  const [dir, setDir] = useState(1);
+  if (last !== index) {
+    setLast(index);
+    setDir((index - last + 4) % 4 <= 2 ? 1 : -1);
+  }
+  return dir;
+}
+
 export function PhoneUI({ state, className }: ScreenProps) {
+  const dir = useSwipeDirection(state.index);
   const id = verticalAt(state.index);
   const screen = screenFor(state.index);
   return (
@@ -58,16 +81,17 @@ export function PhoneUI({ state, className }: ScreenProps) {
             </span>
           </span>
         </div>
-        {/* A change of business cross-fades on stacked layers, so the screen is never empty, however fast it changes. */}
         <div className="relative min-h-0 flex-1">
-          <AnimatePresence initial={false}>
+          <AnimatePresence initial={false} custom={dir}>
             <motion.div
               key={id}
               className="absolute inset-0 flex flex-col bg-[#f4f7f8]"
-              initial={{ opacity: 0, x: 18 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -18 }}
-              transition={{ duration: 0.4, ease: EASE }}
+              custom={dir}
+              variants={SWIPE}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={SWIPE_TRANSITION}
             >
               <div className="px-[1.25em] pt-[0.7em]">
                 <span className="flex items-center gap-[0.45em] text-[0.8em] font-semibold text-ink/55">
@@ -105,6 +129,7 @@ export function PhoneUI({ state, className }: ScreenProps) {
 }
 
 export function LaptopUI({ state, className }: ScreenProps) {
+  const dir = useSwipeDirection(state.index);
   const id = verticalAt(state.index);
   const screen = screenFor(state.index);
   const NavIcons = [House, ICON[id], Users, CalendarDays, BarChart3];
@@ -121,14 +146,16 @@ export function LaptopUI({ state, className }: ScreenProps) {
           </span>
         </div>
         <div className="relative min-h-0 flex-1">
-          <AnimatePresence initial={false}>
+          <AnimatePresence initial={false} custom={dir}>
             <motion.div
               key={id}
               className="absolute inset-0 flex bg-white"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.35, ease: EASE }}
+              custom={dir}
+              variants={SWIPE}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={SWIPE_TRANSITION}
             >
               <div className="flex w-[14.5em] shrink-0 flex-col gap-[0.25em] border-r border-ink/[0.07] bg-[#f6f8f9] px-[0.9em] py-[1.1em]">
                 <span className="mb-[0.9em] flex items-center gap-[0.55em] px-[0.4em]">
