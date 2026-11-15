@@ -7,7 +7,7 @@ import { MockLanguageModelV4 } from "ai/test";
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { BLOCK_IDS, BUSINESS_IDS, SUGGESTED_BLOCKS, kitFromSearchParams } from "@/lib/kit";
+import { BLOCK_IDS, BUSINESS_IDS, kitFromSearchParams, kitHref, sortBlocks, SUGGESTED_BLOCKS } from "@/lib/kit";
 import { CTA } from "@/lib/content";
 import { buildInstructions, runOgi } from "@/lib/ogi/engine";
 import { DEFAULT_GEMINI_MODEL, getOgiModel, ogiModelConfig } from "@/lib/ogi/model";
@@ -323,9 +323,9 @@ describe("Tools answer from the site's own data", () => {
     }
   });
 
-  it("book_call without a kit links to the form with only the kind of business", async () => {
-    const model = fakeModel(call("book_call", { kind: "other" }), say("Here you go."));
-    expect((await run("book", model)).book?.href).toBe("/book?business=other");
+  it("book_call without a kit fills in the suggested kit for that kind of business", async () => {
+    const model = fakeModel(call("book_call", { kind: "clinic" }), say("Here you go."));
+    expect((await run("book", model)).book?.href).toBe(kitHref({ business: "clinic", blocks: sortBlocks(SUGGESTED_BLOCKS.clinic) }));
   });
 
   it("book_call refuses unknown blocks and kinds, so no button is shown", async () => {

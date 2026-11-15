@@ -111,7 +111,8 @@ const BUILDERS: Record<ToolName, (ctx: ToolContext) => ToolSet[string]> = {
         "This books nothing and sends nothing: the visitor fills in and sends the form themselves.",
       inputSchema: bookCallInput,
       execute: async ({ kind, blocks = [] }) => {
-        const kit = sortBlocks(blocks);
+        // No kit chosen yet: start the form with the suggested kit for this kind of business (the visitor can change it).
+        const kit = sortBlocks(blocks.length ? blocks : SUGGESTED_BLOCKS[kind]);
         ctx.pending.book = {
           href: kitHref({ business: kind, blocks: kit }),
           label: CTA.book,
