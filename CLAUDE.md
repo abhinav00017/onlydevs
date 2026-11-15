@@ -8,8 +8,8 @@ The onlydevs company website, for onlydevs.co.in. Personal project of Abhinav an
 ## What this site is
 
 - onlydevs builds and looks after software for local businesses and growing teams, across many verticals: clinics, cafes and restaurants, real estate, events and ticketing, and any business that needs a CRM.
-- The story is "Stress to stress-free": everyday business chaos turns into our services as you scroll, with Ogi (our plush octopus) as the guide, then a "Build your kit" builder, then "Book a free call".
-- The spec is `docs/storyboard.html`. Ogi's look is `docs/ogi-image-guidelines.html`.
+- The story is "Stress to stress-free": everyday business chaos turns into our services as you scroll, shown with real photos and our app screens floating over them, then a "Build your kit" builder, then "Book a free call".
+- The spec is `docs/storyboard.html`, updated by `.claude/memory/decisions.md` (decisions win). Ogi is only a product here (an AI assistant, shown as chat UI), never the guide or the octopus.
 - Live demos live in the separate demo hub project (`~/passion-projects/od-demo-1`), later at demos.onlydevs.co.in. Read it for reference. Do not edit it from here.
 
 ## Boundaries
