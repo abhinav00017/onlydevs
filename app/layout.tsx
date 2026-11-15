@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { BottomBar } from "@/components/site/BottomBar";
 import { Footer } from "@/components/site/Footer";
+import { OgiLauncher } from "@/components/ogi/OgiLauncher";
 import { Header } from "@/components/site/Header";
 import { JsonLd, organizationJsonLd } from "@/components/site/JsonLd";
 import { META } from "@/lib/content";
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </main>
         <Footer />
         <BottomBar />
+        <OgiLauncher />
       </body>
     </html>
   );

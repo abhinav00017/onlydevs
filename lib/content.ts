@@ -434,6 +434,28 @@ export const PRODUCTS = {
       { title: "Hands over to your team", line: "When Ogi is not sure, it passes the chat to a person." },
       { title: "Day and night", line: "On your website at any hour, so no question waits till morning." },
     ],
+    /** Ogi live on this site: the chat button and panel (components/ogi). The facts it answers from are in lib/ogi/profiles.ts. */
+    chat: {
+      open: "Chat with Ogi, our AI assistant",
+      close: "Close chat",
+      title: "Ogi",
+      subtitle: "The onlydevs AI assistant",
+      greeting:
+        "Hi, I'm Ogi, the onlydevs AI assistant. Ask me what we build, which kit suits your business, or how pricing works. I can also help you book a free call.",
+      inputLabel: "Message Ogi",
+      placeholder: "Ask about onlydevs",
+      send: "Send",
+      waking: "Waking Ogi…",
+      typing: "Ogi is typing…",
+      disclaimer: "Ogi is an AI assistant and can make mistakes.",
+      restingTitle: "Ogi is resting",
+      restingLine: "Ogi is taking a short break. You can still write to us or book a free call.",
+      writeLabel: "Write to us",
+      handOver: "Sorry, I can't help with that here. Please book a free call, or write to the founders at",
+      error: "Sorry, something went wrong. Please try again, or write to us at",
+      tooMany: "Too many messages. Please wait a minute and try again.",
+      unreadable: "That message could not be read. Please try again.",
+    },
   },
 } as const;
 
