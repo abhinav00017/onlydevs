@@ -37,7 +37,18 @@ export const FOOTER = {
 /* ---------- Home, frame by frame (docs/storyboard.html, section 3) ---------- */
 
 export const HERO = {
-  title: ["Running a business is hard.", "Running it on paper is harder."],
+  title: "Running a business is hard.",
+  /** Line two of the headline turns through these, in order: the problem, then what it becomes. */
+  turns: [
+    { from: "Paper orders", to: "online orders." },
+    { from: "Forgotten visits", to: "reminded." },
+    { from: "Lost leads", to: "followed up." },
+    { from: "Missed calls", to: "answered." },
+  ],
+  /** The small label beside the device: which business the live screen shows. */
+  showing: "On screen",
+  /** The big soft word behind the devices in the pinned hero, one per business. */
+  words: { cafe: "Cafe", clinic: "Clinic", crm: "CRM", events: "Events" },
   line: "onlydevs builds the software that puts your customers, orders, bookings and leads in one place, whatever your business.",
 } as const;
 

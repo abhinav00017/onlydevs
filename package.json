@@ -8,16 +8,20 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
+    "hero:poster": "node scripts/hero-poster.mjs",
     "test": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.121",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
     "ai": "^7.0.173",
     "lucide-react": "^1.73.0",
     "motion": "^14.14.0",
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "three": "^0.187.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -26,10 +30,12 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.187.0",
     "@vitejs/plugin-react": "^6.3.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "jsdom": "^29.1.1",
+    "puppeteer-core": "^25.17.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.1.0"

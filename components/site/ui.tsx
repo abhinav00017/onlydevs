@@ -15,6 +15,9 @@ export const BUTTON = {
   small: "min-h-10 px-4 py-2 text-sm",
 } as const;
 
+/** Full-bleed side padding for the header, the hero and the bottom bar: small, and growing a little with the screen. */
+export const BLEED_X = "px-[clamp(16px,2.5vw,48px)]";
+
 export function Container({ className, children }: { className?: string; children: ReactNode }) {
   return <div className={cx("mx-auto w-full max-w-6xl px-4 sm:px-6", className)}>{children}</div>;
 }

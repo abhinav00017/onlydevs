@@ -61,3 +61,25 @@ metadata:
 - The reply check blocks other companies' and demo businesses' names, any phone number, any money or currency, any email but onlydevs2002@gmail.com, links outside the site and the demo hub, made-up numbers ("50+", "99%") and timelines in numbers. ShowSalsa and Google are allowed (our demo's name, and the "Google profile" service).
 - The chat copy lives in lib/content.ts as PRODUCTS.ogi.chat. The button is a purple circle with a white chat icon, 1rem above the bottom bar; the panel opens above the button and its code loads only on first open (or hover). Hidden on /book.
 - 15 Nov 2026: Abhinav saw the hero load as a flat phone first, then swap to the 3D laptop and phone. Desktop now shows a still poster of the same 3D scene (our own render) first and fades the live 3D over it; the flat device stays only for phones, reduce-motion and no WebGL.
+
+## 2026-11-15 (Abhinav, via the main session, during the hero device build)
+
+- The 3D must look natural, like a real product photo or render, never toy-like: realistic proportions, tight bevels, physical materials (clearcoat glass, satin metal, dark glass bezel), ACES or AgX tone mapping, a soft grounded contact shadow, calm eased motion. If it still reads as a toy, say so honestly instead of shipping it.
+- Quality bar: oryzo.ai, lusion.co/about, the learnwithzero.com hero. Product-photography light, a subtle surface under the devices with a soft shadow and a hint of reflection. If procedural geometry cannot reach that bar, say so and recommend a licensed CC0/CC-BY device model, to be asked of Abhinav before any download.
+- The hero is full-bleed: edge to edge, the whole first screen (100vw by 100svh), no side gutters, no rounded box. The 3D scene (the flat device on phones) is the stage; the headline, subline and two buttons sit over it, with a soft wash behind the words.
+- The header sits on top of the hero: see-through at the top of the page, solid once you scroll.
+- The photo sections below are full-width too: photos run to the screen edges, with the floating UI cards and the words over or beside them. Text columns keep a readable width.
+
+## 2026-11-15 (hero device build notes)
+
+- components/hero (no 3D): the headline turns, the live screens (PhoneUI, LaptopUI), the cycle (cafe, clinic, Business CRM, events), the flat CSS device and the capability check. components/hero3d (three, fiber, drei): the canvas, the procedural devices and the light. Only components/hero/HeroStage.tsx loads it, through next/dynamic with ssr: false. tests/visuals.test.tsx enforces this.
+- The live UI is real DOM on the screens (drei Html, transform, occlude "blending"), with a reflection-only glass layer over it.
+- HeroScene (the chaos photo) and ChaosStage are no longer on the home page. HeroScene and the hero photo stay in components/visuals and lib/photos.ts for now.
+
+## 2026-11-15 (Abhinav, via the main session: the pinned hero)
+
+- The hero is a pinned scroll scene on desktops and tablets (360svh tall, sticky stage). Phones and "reduce motion" are not pinned.
+- Each business is a clear, cinematic shot, eased like a product film, no bounce: Cafe (front three-quarter), Clinic (camera swings right, the phone is the hero, the laptop steps back into shadow), Business CRM (camera swings left and pushes in on the laptop's screen), Events (a lower angle, the phone turned to the viewer like a ticket), then a calm wide shot as the pin releases.
+- Screens change with a directional swipe; a huge, soft word per business sits behind the devices; a soft purple glow shifts per business.
+- Headline turns, in order with the businesses: Paper orders, Forgotten visits, Lost leads, Missed calls.
+- No shape change while loading: desktops and tablets show a poster of our own 3D scene at step 0, lined up with the canvas, and the live 3D fades in over it. If the 3D cannot run or fails, the poster stays. The flat CSS device is only for phones, "reduce motion" and no WebGL. Regenerate the poster with `npm run hero:poster` whenever the scene or its first shot changes.

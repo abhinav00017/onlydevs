@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ChaosStage } from "@/components/home/ChaosStage";
 import {
   EndFrame,
   FaqFrame,
@@ -26,11 +25,9 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
-      <ChaosStage>
-        <HeroFrame />
-        <ProofFrame />
-        <PainFrame />
-      </ChaosStage>
+      <HeroFrame />
+      <ProofFrame />
+      <PainFrame />
       <FixFrame />
       <StressFree />
       <WhoFrame />

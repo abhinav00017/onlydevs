@@ -2,34 +2,55 @@ import Link from "next/link";
 import { FixScene } from "@/components/visuals";
 import { CTA, END, FAQ, FIX, HERO, HOW, KIT, PAIN, PRODUCTS, PROOF, WHO } from "@/lib/content";
 import { SITE, demoUrl, getVertical } from "@/lib/site";
-import { BookButton, ButtonLink, Container, ExternalLink, H2, LEAD, cx } from "@/components/site/ui";
-import { ChaosSlot } from "./ChaosStage";
+import { BLEED_X, BookButton, ButtonLink, Container, ExternalLink, H2, LEAD, cx } from "@/components/site/ui";
+import { HeadlineTurns } from "@/components/hero/HeadlineTurns";
+import { HeroPin } from "@/components/hero/HeroPin";
+import { HeroStage } from "@/components/hero/HeroStage";
 import { KitBuilder } from "./KitBuilder";
 import { PainWords } from "./PainWords";
 import { FaqList, FoundersNoteCard, IndustryGrid, ProductBlocks } from "./shared";
 
 /** The home page frames, in storyboard order (docs/storyboard.html, section 3). Text renders on the server. */
 
-/* 1. The stress */
+/*
+ * 1. The stress, and the wow: full-bleed, the live device as the stage, the words over it.
+ * Desktops and tablets: a pinned scroll scene. The section is tall, the stage is sticky, and scrolling walks the device
+ * through the four businesses before the page moves on. Phones and "reduce motion": one normal screen.
+ */
 export function HeroFrame() {
   return (
-    <section aria-labelledby="hero-title">
-      <Container className="grid items-center gap-8 pt-10 pb-12 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:gap-12 lg:pt-24 lg:pb-20">
-        <div>
-          <h1 id="hero-title" className="text-[2.5rem] leading-[1.05] font-bold tracking-tight text-balance sm:text-7xl sm:leading-[1.02]">
-            {HERO.title[0]} <span className="text-brand">{HERO.title[1]}</span>
-          </h1>
-          <p className={cx(LEAD, "mt-6 max-w-xl")}>{HERO.line}</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <BookButton />
-            <ButtonLink href="/demos" variant="secondary">
-              {CTA.demos}
-            </ButtonLink>
+    <HeroPin
+      className="relative -mt-16 overflow-clip bg-canvas sm:min-h-[680px] sm:motion-safe:h-[360svh] sm:motion-reduce:h-svh"
+      stageClassName="relative bg-[radial-gradient(120%_90%_at_72%_60%,#ffffff_0%,#f2f7f8_50%,#e4edef_100%)] sm:sticky sm:top-0 sm:h-svh sm:min-h-[680px] sm:overflow-hidden"
+    >
+      <div className="relative z-10 sm:pointer-events-none sm:absolute sm:inset-0">
+        {/* A soft wash behind the words, so they stay easy to read over the scene. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 hidden bg-linear-to-b from-canvas via-canvas/75 to-transparent to-60% sm:block lg:right-auto lg:w-[52%] lg:bg-linear-to-r lg:from-canvas lg:via-canvas/70 lg:via-60% lg:to-transparent lg:to-100%"
+        />
+        <div className={cx("relative pt-28 sm:flex sm:h-full sm:pt-32 lg:items-center lg:pt-10", BLEED_X)}>
+          <div className="max-w-xl sm:pointer-events-auto lg:max-w-[42vw]">
+            <h1
+              id="hero-title"
+              className="text-[2.5rem] leading-[1.06] font-bold tracking-tight sm:text-6xl sm:leading-[1.04] lg:text-[clamp(3rem,min(4.3vw,8.4svh),9rem)] lg:leading-[1.02]"
+            >
+              <span className="block text-balance">{HERO.title}</span>
+              <HeadlineTurns turns={HERO.turns} className="mt-1 block" />
+            </h1>
+            <p className={cx(LEAD, "mt-6 max-w-lg text-ink/70 lg:max-w-[min(36rem,34vw)] lg:text-[clamp(1.25rem,1.3vw,1.6rem)]")}>{HERO.line}</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <BookButton />
+              <ButtonLink href="/demos" variant="secondary">
+                {CTA.demos}
+              </ButtonLink>
+            </div>
           </div>
         </div>
-        <ChaosSlot className="relative mx-auto aspect-[4/3] w-full max-w-xl sm:aspect-square" />
-      </Container>
-    </section>
+      </div>
+      <HeroStage className="relative mt-4 flex h-[30rem] flex-col overflow-hidden sm:absolute sm:inset-0 sm:mt-0 sm:h-auto" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-b from-transparent to-canvas sm:h-16" />
+    </HeroPin>
   );
 }
 
@@ -87,43 +108,55 @@ export function PainFrame() {
   );
 }
 
-/* 4. The fix: six scenes */
+/* 4. The fix: six scenes. Each is a full-bleed photo with our screen over it, and the words over a soft wash beside it. */
 export function FixFrame() {
   return (
     <section aria-labelledby="fix-title" className="pb-10">
-      <Container className="pt-10 pb-6 sm:pt-16">
+      <Container className="pt-10 pb-10 sm:pt-16">
         <h2 id="fix-title" className={H2}>
           {FIX.title}
         </h2>
       </Container>
-      <ol>
-        {FIX.scenes.map((scene, i) => (
-          <li key={scene.step}>
-            <Container className="grid items-center gap-8 py-12 sm:py-16 lg:min-h-[80svh] lg:grid-cols-2 lg:gap-16">
-              <div className={i % 2 ? "lg:order-2" : undefined}>
-                <p className="text-lg font-medium text-muted line-through decoration-brand/50 decoration-2 sm:text-xl">{scene.problem}</p>
-                <h3 className="mt-4 flex items-start gap-3 text-3xl font-bold tracking-tight text-balance sm:text-5xl">
-                  <span aria-hidden className="text-brand">
-                    →
-                  </span>
-                  <span>{scene.service}</span>
-                </h3>
-                <p className={cx(LEAD, "mt-5 max-w-lg text-ink/80")}>{scene.line}</p>
-                <p className="mt-4 text-base text-muted">
-                  {FIX.examplesLabel}: {scene.examples}
-                </p>
-                <Link href={scene.href} className="mt-6 inline-flex items-center gap-1 font-semibold text-brand underline-offset-4 hover:underline">
-                  {CTA.learnMore}
-                  <span className="sr-only"> about {scene.service}</span>
-                  <span aria-hidden>→</span>
-                </Link>
-              </div>
-              <FixScene step={scene.step} className="mx-auto aspect-square w-full max-w-[32rem]" />
-            </Container>
-          </li>
-        ))}
+      <ol className="flex flex-col gap-4 lg:gap-0">
+        {FIX.scenes.map((scene, i) => {
+          const mirrored = i % 2 === 1;
+          return (
+            <li key={scene.step} className="relative isolate lg:flex lg:min-h-[86svh] lg:items-center">
+              <FixScene step={scene.step} className="h-[62svh] min-h-[420px] lg:absolute lg:inset-0 lg:h-auto lg:min-h-0" />
+              <div
+                aria-hidden
+                className={cx(
+                  "pointer-events-none absolute inset-0 hidden lg:block",
+                  mirrored
+                    ? "bg-linear-to-l from-canvas from-25% via-canvas/80 via-45% to-transparent to-70%"
+                    : "bg-linear-to-r from-canvas from-25% via-canvas/80 via-45% to-transparent to-70%",
+                )}
+              />
+              <Container className="relative py-10 lg:py-24">
+                <div className={cx("max-w-lg", mirrored && "lg:ml-auto")}>
+                  <p className="text-lg font-medium text-muted line-through decoration-brand/50 decoration-2 sm:text-xl">{scene.problem}</p>
+                  <h3 className="mt-4 flex items-start gap-3 text-3xl font-bold tracking-tight text-balance sm:text-5xl">
+                    <span aria-hidden className="text-brand">
+                      →
+                    </span>
+                    <span>{scene.service}</span>
+                  </h3>
+                  <p className={cx(LEAD, "mt-5 text-ink/80")}>{scene.line}</p>
+                  <p className="mt-4 text-base text-muted">
+                    {FIX.examplesLabel}: {scene.examples}
+                  </p>
+                  <Link href={scene.href} className="mt-6 inline-flex items-center gap-1 font-semibold text-brand underline-offset-4 hover:underline">
+                    {CTA.learnMore}
+                    <span className="sr-only"> about {scene.service}</span>
+                    <span aria-hidden>→</span>
+                  </Link>
+                </div>
+              </Container>
+            </li>
+          );
+        })}
       </ol>
-      <Container className="flex justify-center pt-4">
+      <Container className="flex justify-center pt-12">
         <BookButton />
       </Container>
     </section>

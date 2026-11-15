@@ -5,7 +5,6 @@ import { PhotoFill } from "./Photo";
 import { Reveal } from "./Reveal";
 import { BookingsScreen, ChatScreen, DashboardScreen, LeadScreen, ReminderScreen, SearchScreen } from "./screens";
 import type { FixSceneProps, FixStep } from "./types";
-import { SCALE } from "./ui";
 
 const SCREENS: Record<FixStep, () => ReactNode> = {
   0: SearchScreen,
@@ -17,8 +16,9 @@ const SCREENS: Record<FixStep, () => ReactNode> = {
 };
 
 /**
- * One fix scene: a real photo of the moment, and our product's screen floating over its corner.
- * Even steps put the photo top-left and the screen bottom-right; odd steps mirror it.
+ * One fix scene, full-bleed: a real photo of the moment, edge to edge, with our product's screen floating over it.
+ * The frame around it puts the words on the other side, over a soft wash (components/home/frames.tsx).
+ * Even steps keep the screen on the right; odd steps mirror it to the left.
  */
 export default function FixScene({ step, className }: FixSceneProps) {
   const photo = PHOTOS[FIX_PHOTOS[step]];
@@ -26,16 +26,13 @@ export default function FixScene({ step, className }: FixSceneProps) {
   const mirrored = step % 2 === 1;
 
   return (
-    <div className={cx("@container relative", className)}>
+    <div className={cx("@container relative overflow-hidden", className)} data-fix-step={step}>
+      <PhotoFill photo={photo} sizes="100vw" />
       <div
-        className={cx(
-          "absolute top-0 bottom-[16%] overflow-hidden rounded-[1.75rem] shadow-float sm:rounded-[2.25rem]",
-          mirrored ? "right-0 left-[10%]" : "right-[10%] left-0",
-        )}
+        aria-hidden
+        style={{ fontSize: "clamp(8.5px, 2.4cqw, 15px)" }}
+        className={cx("absolute bottom-[7%] flex lg:bottom-[12%]", mirrored ? "left-[5%] lg:left-[9%]" : "right-[5%] lg:right-[9%]")}
       >
-        <PhotoFill photo={photo} sizes="(min-width: 640px) 460px, calc(90vw - 29px)" />
-      </div>
-      <div aria-hidden style={SCALE} className={cx("absolute bottom-0 flex", mirrored ? "left-0" : "right-0")}>
         <Reveal from={{ x: mirrored ? -24 : 24, y: 24 }}>
           <Screen />
         </Reveal>
