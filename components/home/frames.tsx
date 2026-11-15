@@ -26,7 +26,7 @@ export function HeroFrame() {
         />
         <Container className="relative pt-28 sm:flex sm:h-full sm:pt-32 lg:items-center lg:pt-10">
           <div className="max-w-xl sm:pointer-events-auto lg:max-w-[min(40rem,46vw)]">
-            <h1 id="hero-title" className="text-[2.5rem] leading-[1.06] font-bold tracking-tight sm:text-6xl sm:leading-[1.04] lg:text-[clamp(3rem,min(4.4vw,8.2svh),4.5rem)] lg:leading-[1.03]">
+            <h1 id="hero-title" className="text-[2.5rem] leading-[1.06] font-bold tracking-tight sm:text-6xl sm:leading-[1.04] lg:max-w-[min(36rem,40vw)] lg:text-[clamp(3rem,min(4.4vw,8.2svh),4.5rem)] lg:leading-[1.03]">
               <span className="block text-balance">{HERO.title}</span>
               <HeadlineTurns turns={HERO.turns} className="mt-1 block" />
             </h1>

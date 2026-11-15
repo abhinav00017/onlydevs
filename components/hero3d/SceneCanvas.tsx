@@ -11,7 +11,7 @@ import { ACESFilmicToneMapping, SRGBColorSpace } from "three";
  * - caps the pixel ratio at 1.5;
  * - tracks the pointer for a subtle tilt;
  * - calls `onFail` on context loss or a render error (the hero then shows the flat device for good);
- * - calls `onReady` after the first real frame.
+ * - calls `onReady` once every live screen is in place and a few frames are drawn, so the stage fades in whole.
  * It sits in its own stacking context, because drei's Html occlusion uses very large z-indexes.
  */
 
@@ -23,6 +23,14 @@ export type SceneLive = {
 
 const LiveContext = createContext<RefObject<SceneLive> | null>(null);
 const PortalContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
+const ScreenReadyContext = createContext<((name: string) => void) | null>(null);
+
+/** A live screen calls this once its DOM is mounted. The stage waits for all of them before it shows. */
+export function useScreenMounted(): (name: string) => void {
+  const mark = useContext(ScreenReadyContext);
+  if (!mark) throw new Error("useScreenMounted must be used inside SceneCanvas");
+  return mark;
+}
 
 export function useSceneLive(): RefObject<SceneLive> {
   const live = useContext(LiveContext);
@@ -48,12 +56,15 @@ export function clampDelta(delta: number) {
 type Props = {
   className?: string;
   camera: { position: [number, number, number]; fov: number };
+  /** How many live screens must mount before the stage counts as ready. */
+  screens: number;
   onReady: () => void;
   onFail: () => void;
   children: ReactNode;
 };
 
-export function SceneCanvas({ className, camera, onReady, onFail, children }: Props) {
+export function SceneCanvas({ className, camera, screens, onReady, onFail, children }: Props) {
+  const mounted = useRef(new Set<string>());
   const [visible, setVisible] = useState(true);
   const [failed, setFailed] = useState(false);
   const host = useRef<HTMLDivElement>(null);
@@ -72,6 +83,9 @@ export function SceneCanvas({ className, camera, onReady, onFail, children }: Pr
         fail.current();
       },
       ready: () => ready.current(),
+      mark: (name: string) => {
+        mounted.current.add(name);
+      },
     }),
     [],
   );
@@ -137,8 +151,10 @@ export function SceneCanvas({ className, camera, onReady, onFail, children }: Pr
         >
           <LiveContext.Provider value={live}>
             <PortalContext.Provider value={portal}>
-              {children}
-              <FirstFrame onFrame={handlers.ready} />
+              <ScreenReadyContext.Provider value={handlers.mark}>
+                {children}
+                <FirstFrame onFrame={handlers.ready} isReady={() => mounted.current.size >= screens} />
+              </ScreenReadyContext.Provider>
             </PortalContext.Provider>
           </LiveContext.Provider>
         </Canvas>
@@ -148,12 +164,19 @@ export function SceneCanvas({ className, camera, onReady, onFail, children }: Pr
   );
 }
 
-function FirstFrame({ onFrame }: { onFrame: () => void }) {
+function FirstFrame({ onFrame, isReady }: { onFrame: () => void; isReady: () => boolean }) {
   const frames = useRef(0);
+  const done = useRef(false);
   useFrame(() => {
+    if (done.current) return;
+    // Count frames only once every live screen is mounted: the first compiles shaders,
+    // the next ones let the screens' DOM lay out behind the glass.
+    if (!isReady()) return;
     frames.current += 1;
-    // A few frames: the first compiles shaders, the live UI needs a frame to lay out behind the glass.
-    if (frames.current === 4) onFrame();
+    if (frames.current >= 4) {
+      done.current = true;
+      onFrame();
+    }
   });
   return null;
 }

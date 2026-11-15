@@ -10,7 +10,7 @@ import { LAPTOP_SCREEN, LaptopUI, PHONE_SCREEN, PhoneUI } from "@/components/her
 import type { DeviceSceneProps } from "@/components/hero/types";
 import { panel, slab, squircleRect } from "./geometry";
 import { makeMaterials, type DeviceMaterials } from "./materials";
-import { SceneCanvas, clampDelta, useSceneLive, useScreenPortal } from "./SceneCanvas";
+import { SceneCanvas, clampDelta, useSceneLive, useScreenMounted, useScreenPortal } from "./SceneCanvas";
 
 /**
  * The hero's 3D stage: a generic laptop with a generic phone in front of it, both running our live UI.
@@ -21,7 +21,7 @@ import { SceneCanvas, clampDelta, useSceneLive, useScreenPortal } from "./SceneC
  */
 export default function DeviceScene({ state, progress, onReady, onFail, className }: DeviceSceneProps) {
   return (
-    <SceneCanvas className={className} camera={{ position: [0.6, 2.4, 9], fov: 24 }} onReady={onReady} onFail={onFail}>
+    <SceneCanvas className={className} camera={{ position: [0.6, 2.4, 9], fov: 24 }} screens={2} onReady={onReady} onFail={onFail}>
       <Studio />
       <Rig progress={progress}>
         <Devices>
@@ -176,7 +176,14 @@ function Rig({ progress, children }: { progress: DeviceSceneProps["progress"]; c
     camera.lookAt(look.current);
   });
 
-  return <group ref={stage}>{children}</group>;
+  // The stage turns around the middle of the composition, so the devices turn in place instead of sweeping sideways.
+  return (
+    <group position={[COMPOSITION.center.x, 0, COMPOSITION.center.z]}>
+      <group ref={stage}>
+        <group position={[-COMPOSITION.center.x, 0, -COMPOSITION.center.z]}>{children}</group>
+      </group>
+    </group>
+  );
 }
 
 /* ---------- Devices ---------- */
@@ -192,6 +199,7 @@ function Devices({ children }: { children: (m: DeviceMaterials) => ReactNode }) 
  * `distanceFactor` makes the DOM's design width match the screen's real width.
  */
 function LiveScreen({
+  name,
   width,
   height,
   radius,
@@ -199,6 +207,7 @@ function LiveScreen({
   z,
   children,
 }: {
+  name: string;
   width: number;
   height: number;
   radius: number;
@@ -209,6 +218,7 @@ function LiveScreen({
   const shape = useMemo(() => squircleRect(width, height, radius), [width, height, radius]);
   const radiusPx = (radius / width) * design.width;
   const portal = useScreenPortal();
+  const mounted = useScreenMounted();
   return (
     <Html
       portal={portal}
@@ -219,7 +229,14 @@ function LiveScreen({
       geometry={<shapeGeometry args={[shape, 1]} />}
       pointerEvents="none"
     >
-      <div style={{ width: design.width, height: design.height, borderRadius: radiusPx * 0.82, overflow: "hidden" }}>{children}</div>
+      <div
+        ref={(node) => {
+          if (node) mounted(name);
+        }}
+        style={{ width: design.width, height: design.height, borderRadius: radiusPx * 0.82, overflow: "hidden" }}
+      >
+        {children}
+      </div>
     </Html>
   );
 }
@@ -256,7 +273,7 @@ function Phone({
       <mesh geometry={geo.body} material={m.frame} />
       <mesh geometry={geo.cover} material={m.glass} position={[0, 0, front - 0.001]} />
       <group position={[0, 0.005, 0]}>
-        <LiveScreen width={PHONE_DISPLAY.w} height={PHONE_DISPLAY.h} radius={PHONE_DISPLAY.r} design={PHONE_SCREEN} z={front + 0.0026}>
+        <LiveScreen name="phone" width={PHONE_DISPLAY.w} height={PHONE_DISPLAY.h} radius={PHONE_DISPLAY.r} design={PHONE_SCREEN} z={front + 0.0026}>
           {children}
         </LiveScreen>
       </group>
@@ -276,7 +293,8 @@ function Phone({
 const LAPTOP = { w: 3.04, depth: 2.12, base: 0.1, lid: 2.0, lidT: 0.04, r: 0.13 };
 const LAPTOP_DISPLAY = { w: 2.84, h: (2.84 * LAPTOP_SCREEN.height) / LAPTOP_SCREEN.width, r: 0.035 };
 const LID_OPEN = -0.26;
-const LID_START = 1.15;
+/** The lid starts a little closed and settles open while the stage fades in: a small, calm move, not a pop. */
+const LID_START = 0.12;
 
 function Laptop({ m, position, rotationY, children }: { m: DeviceMaterials; position: [number, number, number]; rotationY: number; children: ReactNode }) {
   const lid = useRef<Group>(null);
@@ -313,7 +331,7 @@ function Laptop({ m, position, rotationY, children }: { m: DeviceMaterials; posi
         <mesh geometry={geo.lid} material={m.aluminium} position={[0, LAPTOP.lid / 2, -LAPTOP.lidT / 2]} />
         <mesh geometry={geo.bezel} material={m.glass} position={[0, LAPTOP.lid / 2, 0.001]} />
         <group position={[0, LAPTOP.lid / 2 + 0.03, 0]}>
-          <LiveScreen width={LAPTOP_DISPLAY.w} height={LAPTOP_DISPLAY.h} radius={LAPTOP_DISPLAY.r} design={LAPTOP_SCREEN} z={0.0036}>
+          <LiveScreen name="laptop" width={LAPTOP_DISPLAY.w} height={LAPTOP_DISPLAY.h} radius={LAPTOP_DISPLAY.r} design={LAPTOP_SCREEN} z={0.0036}>
             {children}
           </LiveScreen>
         </group>

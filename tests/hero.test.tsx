@@ -143,6 +143,21 @@ describe("the live screen's cycle", () => {
     expect(HERO_ORDER[cycleReducer(s, { type: "shift", by: -3 }).index]).toBe("events");
   });
 
+  it("shows the new business at once when the screen changes fast, so it is never left empty", async () => {
+    stubMedia([]);
+    const { PhoneUI, LaptopUI } = await import("@/components/hero/LiveScreens");
+    for (const Screen of [PhoneUI, LaptopUI]) {
+      const view = render(<Screen state={initialCycle(0)} />);
+      for (const i of [1, 2, 3, 2, 3]) {
+        view.rerender(<Screen state={initialCycle(i)} />);
+        // The entering business is in the DOM straight away (no waiting for the old one to leave).
+        const app = [HERO_SCREENS.cafe, HERO_SCREENS.clinic, HERO_SCREENS.crm, HERO_SCREENS.events][i].app;
+        expect(view.container.textContent, `${Screen.name} ${i}`).toContain(app);
+      }
+      view.unmount();
+    }
+  });
+
   it("tags every screen as sample data", async () => {
     stubMedia(["(prefers-reduced-motion: reduce)"]);
     const { PhoneUI, LaptopUI } = await import("@/components/hero/LiveScreens");
@@ -157,11 +172,40 @@ describe("the live screen's cycle", () => {
   });
 });
 
+describe("the header over the hero", () => {
+  it("is see-through at the very top and solid as soon as the page scrolls", async () => {
+    const { HeaderShell } = await import("@/components/site/HeaderShell");
+    Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+    const { container } = render(<HeaderShell>nav</HeaderShell>);
+    const header = () => container.querySelector("header")!;
+    expect(header().getAttribute("data-scrolled")).toBe("false");
+    Object.defineProperty(window, "scrollY", { value: 1, configurable: true });
+    act(() => {
+      window.dispatchEvent(new Event("scroll"));
+    });
+    expect(header().getAttribute("data-scrolled")).toBe("true");
+    expect(header().className).toMatch(/bg-canvas/);
+  });
+});
+
 describe("the flat device", () => {
+  it("stays hidden on a desktop that will get the 3D, so the stage never shows a lone phone first", async () => {
+    stubMedia([]);
+    stubWebGL(true);
+    const { HeroStage } = await import("@/components/hero/HeroStage");
+    const { container } = render(<HeroStage />);
+    const wrapper = () => container.querySelector("[data-flat-device]")!.parentElement!;
+    // Before the check: hidden on wider screens unless "reduce motion" (CSS), shown on phones.
+    expect(wrapper().className).toMatch(/sm:motion-safe:opacity-0/);
+    act(() => vi.advanceTimersByTime(3000));
+    expect(wrapper().className).toMatch(/(^|\s)opacity-0/);
+  });
+
   async function renderStage() {
     const { HeroStage } = await import("@/components/hero/HeroStage");
     const view = render(<HeroStage />);
-    // The hero asks for 3D only after load, when the browser is idle (jsdom: a timer).
+    // The hero checks the device a tick after mount, then asks for 3D only after load, when idle (jsdom: a timer).
+    act(() => vi.advanceTimersByTime(10));
     act(() => vi.advanceTimersByTime(3000));
     return view;
   }

@@ -58,36 +58,39 @@ export function PhoneUI({ state, className }: ScreenProps) {
             </span>
           </span>
         </div>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={id}
-            className="flex min-h-0 flex-1 flex-col"
-            initial={{ opacity: 0, x: 18 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -18 }}
-            transition={{ duration: 0.4, ease: EASE }}
-          >
-            <div className="px-[1.25em] pt-[0.7em]">
-              <span className="flex items-center gap-[0.45em] text-[0.8em] font-semibold text-ink/55">
-                <span className="size-[0.6em] rounded-full bg-brand" />
-                {screen.app}
+        {/* A change of business cross-fades on stacked layers, so the screen is never empty, however fast it changes. */}
+        <div className="relative min-h-0 flex-1">
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={id}
+              className="absolute inset-0 flex flex-col bg-[#f4f7f8]"
+              initial={{ opacity: 0, x: 18 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -18 }}
+              transition={{ duration: 0.4, ease: EASE }}
+            >
+              <div className="px-[1.25em] pt-[0.7em]">
+                <span className="flex items-center gap-[0.45em] text-[0.8em] font-semibold text-ink/55">
+                  <span className="size-[0.6em] rounded-full bg-brand" />
+                  {screen.app}
+                </span>
+                <span className="mt-[0.15em] flex items-center justify-between gap-[0.5em]">
+                  <span className="text-[1.75em] leading-tight font-bold tracking-tight">{screen.section}</span>
+                  <SampleTag />
+                </span>
+              </div>
+              <CountCard id={id} screen={screen} count={state.count} className="mx-[1.1em] mt-[0.8em]" />
+              <span className="mt-[1em] flex items-center gap-[0.45em] px-[1.3em] text-[0.72em] font-semibold tracking-wide text-ink/50 uppercase">
+                <span className="relative flex size-[0.6em]">
+                  <span className="absolute inset-0 animate-ping rounded-full bg-brand/50 motion-reduce:animate-none" />
+                  <span className="relative size-full rounded-full bg-brand" />
+                </span>
+                {HERO_SCREENS.today}
               </span>
-              <span className="mt-[0.15em] flex items-center justify-between gap-[0.5em]">
-                <span className="text-[1.75em] leading-tight font-bold tracking-tight">{screen.section}</span>
-                <SampleTag />
-              </span>
-            </div>
-            <CountCard id={id} screen={screen} count={state.count} className="mx-[1.1em] mt-[0.8em]" />
-            <span className="mt-[1em] flex items-center gap-[0.45em] px-[1.3em] text-[0.72em] font-semibold tracking-wide text-ink/50 uppercase">
-              <span className="relative flex size-[0.6em]">
-                <span className="absolute inset-0 animate-ping rounded-full bg-brand/50 motion-reduce:animate-none" />
-                <span className="relative size-full rounded-full bg-brand" />
-              </span>
-              {HERO_SCREENS.today}
-            </span>
-            <Feed id={id} screen={screen} state={state} className="mt-[0.5em] px-[1.1em]" />
-          </motion.div>
-        </AnimatePresence>
+              <Feed id={id} screen={screen} state={state} className="mt-[0.5em] px-[1.1em]" />
+            </motion.div>
+          </AnimatePresence>
+        </div>
         <div className="mt-auto shrink-0 border-t border-ink/[0.06] bg-white/80 px-[1.6em] pt-[0.7em] pb-[0.5em]">
           <span className="flex items-center justify-between text-ink/40">
             {[House, LayoutGrid, CalendarDays, Settings].map((Icon, i) => (
@@ -117,69 +120,71 @@ export function LaptopUI({ state, className }: ScreenProps) {
             app.example
           </span>
         </div>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={id}
-            className="flex min-h-0 flex-1"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: EASE }}
-          >
-            <div className="flex w-[14.5em] shrink-0 flex-col gap-[0.25em] border-r border-ink/[0.07] bg-[#f6f8f9] px-[0.9em] py-[1.1em]">
-              <span className="mb-[0.9em] flex items-center gap-[0.55em] px-[0.4em]">
-                <span className="flex size-[2em] items-center justify-center rounded-[0.55em] bg-brand text-[0.9em] font-bold text-white">{screen.app[0]}</span>
-                <span className="truncate text-[0.95em] font-bold">{screen.app}</span>
-              </span>
-              {screen.nav.map((label, i) => {
-                const Icon = NavIcons[i] ?? LayoutGrid;
-                return (
-                  <span
-                    key={label}
-                    className={cx(
-                      "flex items-center gap-[0.6em] rounded-[0.6em] px-[0.7em] py-[0.5em] text-[0.88em] font-semibold",
-                      i === 1 ? "bg-white text-brand shadow-float-sm ring-1 ring-ink/[0.05]" : "text-ink/55",
-                    )}
-                  >
-                    <Icon className="size-[1.15em]" strokeWidth={2.1} />
-                    {label}
-                  </span>
-                );
-              })}
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col bg-[#fbfcfc] px-[1.7em] py-[1.3em]">
-              <span className="flex items-center justify-between">
-                <span>
-                  <span className="block text-[0.78em] font-semibold text-ink/50">{screen.section}</span>
-                  <span className="block text-[1.75em] leading-tight font-bold tracking-tight">{HERO_SCREENS.today}</span>
+        <div className="relative min-h-0 flex-1">
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={id}
+              className="absolute inset-0 flex bg-white"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35, ease: EASE }}
+            >
+              <div className="flex w-[14.5em] shrink-0 flex-col gap-[0.25em] border-r border-ink/[0.07] bg-[#f6f8f9] px-[0.9em] py-[1.1em]">
+                <span className="mb-[0.9em] flex items-center gap-[0.55em] px-[0.4em]">
+                  <span className="flex size-[2em] items-center justify-center rounded-[0.55em] bg-brand text-[0.9em] font-bold text-white">{screen.app[0]}</span>
+                  <span className="truncate text-[0.95em] font-bold">{screen.app}</span>
                 </span>
-                <span className="flex items-center gap-[0.6em]">
-                  <SampleTag />
-                  <span className="flex size-[2.1em] items-center justify-center rounded-full bg-ink/[0.06] text-[0.8em] font-bold text-ink/60">ND</span>
-                </span>
-              </span>
-              <span className="mt-[1em] grid grid-cols-3 gap-[0.8em]">
-                <CountCard id={id} screen={screen} count={state.count} compact />
-                {screen.tiles.map((t) => (
-                  <span key={t.label} className="rounded-[0.9em] bg-white px-[1em] py-[0.8em] ring-1 ring-ink/[0.07]">
-                    <span className="block truncate text-[0.75em] font-semibold text-ink/50">{t.label}</span>
-                    <span className="mt-[0.2em] block text-[1.6em] leading-tight font-bold tracking-tight">{t.value}</span>
+                {screen.nav.map((label, i) => {
+                  const Icon = NavIcons[i] ?? LayoutGrid;
+                  return (
+                    <span
+                      key={label}
+                      className={cx(
+                        "flex items-center gap-[0.6em] rounded-[0.6em] px-[0.7em] py-[0.5em] text-[0.88em] font-semibold",
+                        i === 1 ? "bg-white text-brand shadow-float-sm ring-1 ring-ink/[0.05]" : "text-ink/55",
+                      )}
+                    >
+                      <Icon className="size-[1.15em]" strokeWidth={2.1} />
+                      {label}
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col bg-[#fbfcfc] px-[1.7em] py-[1.3em]">
+                <span className="flex items-center justify-between">
+                  <span>
+                    <span className="block text-[0.78em] font-semibold text-ink/50">{screen.section}</span>
+                    <span className="block text-[1.75em] leading-tight font-bold tracking-tight">{HERO_SCREENS.today}</span>
                   </span>
-                ))}
-              </span>
-              <span className="mt-[0.9em] grid min-h-0 flex-1 grid-cols-[1.55fr_1fr] gap-[0.8em]">
-                <span className="flex min-h-0 flex-col overflow-hidden rounded-[0.9em] bg-white px-[0.9em] py-[0.8em] ring-1 ring-ink/[0.07]">
-                  <span className="mb-[0.4em] flex items-center gap-[0.45em] text-[0.72em] font-semibold tracking-wide text-ink/50 uppercase">
-                    <span className="size-[0.6em] rounded-full bg-brand" />
-                    {screen.section}
+                  <span className="flex items-center gap-[0.6em]">
+                    <SampleTag />
+                    <span className="flex size-[2.1em] items-center justify-center rounded-full bg-ink/[0.06] text-[0.8em] font-bold text-ink/60">ND</span>
                   </span>
-                  <Feed id={id} screen={screen} state={state} dense />
                 </span>
-                <WeekChart />
-              </span>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+                <span className="mt-[1em] grid grid-cols-3 gap-[0.8em]">
+                  <CountCard id={id} screen={screen} count={state.count} compact />
+                  {screen.tiles.map((t) => (
+                    <span key={t.label} className="rounded-[0.9em] bg-white px-[1em] py-[0.8em] ring-1 ring-ink/[0.07]">
+                      <span className="block truncate text-[0.75em] font-semibold text-ink/50">{t.label}</span>
+                      <span className="mt-[0.2em] block text-[1.6em] leading-tight font-bold tracking-tight">{t.value}</span>
+                    </span>
+                  ))}
+                </span>
+                <span className="mt-[0.9em] grid min-h-0 flex-1 grid-cols-[1.55fr_1fr] gap-[0.8em]">
+                  <span className="flex min-h-0 flex-col overflow-hidden rounded-[0.9em] bg-white px-[0.9em] py-[0.8em] ring-1 ring-ink/[0.07]">
+                    <span className="mb-[0.4em] flex items-center gap-[0.45em] text-[0.72em] font-semibold tracking-wide text-ink/50 uppercase">
+                      <span className="size-[0.6em] rounded-full bg-brand" />
+                      {screen.section}
+                    </span>
+                    <Feed id={id} screen={screen} state={state} dense />
+                  </span>
+                  <WeekChart />
+                </span>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
