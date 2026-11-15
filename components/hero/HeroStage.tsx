@@ -3,7 +3,7 @@
 import { useMotionValueEvent, useScroll } from "motion/react";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { cx } from "@/components/site/ui";
+import { BLEED_X, cx } from "@/components/site/ui";
 import { usePrefersReducedMotion } from "@/components/visuals/useCalm";
 import { HERO } from "@/lib/content";
 import { HERO_ORDER, useHeroCycle, verticalLabel } from "./cycle";
@@ -149,8 +149,8 @@ export function HeroStage({ className }: { className?: string }) {
           decided === null && "sm:motion-safe:animate-[hero-reveal_0.7s_ease-out_2s_forwards] sm:motion-safe:opacity-0",
           !showFlat && decided !== null && "pointer-events-none opacity-0",
           "mx-auto w-[min(74vw,300px)]",
-          "sm:absolute sm:bottom-[-14%] sm:left-1/2 sm:w-[min(36vw,280px)] sm:-translate-x-1/2",
-          "lg:top-1/2 lg:right-[13%] lg:bottom-auto lg:left-auto lg:w-[clamp(240px,19vw,320px)] lg:translate-x-0 lg:-translate-y-[46%]",
+          "sm:absolute sm:bottom-[-14%] sm:left-1/2 sm:w-[min(44vw,340px)] sm:-translate-x-1/2",
+          "lg:top-1/2 lg:right-[18vw] lg:bottom-auto lg:left-auto lg:w-[min(21vw,33svh)] lg:translate-x-0 lg:-translate-y-[52%]",
         )}
       >
         <FlatDevice state={state} tilt={!reduce} />
@@ -175,10 +175,10 @@ export function HeroStage({ className }: { className?: string }) {
 /** The small label: which business is on screen, with one mark per business. */
 function VerticalLabel({ index }: { index: number }) {
   return (
-    <div className="pointer-events-none relative z-10 order-first flex justify-center pb-5 sm:absolute sm:order-none sm:inset-x-0 sm:bottom-[5.5rem] sm:py-0 lg:justify-end lg:pr-[max(1.5rem,calc((100vw-72rem)/2+1.5rem))]">
+    <div className={cx("pointer-events-none relative z-10 order-first flex justify-center pb-5 sm:absolute sm:order-none sm:inset-x-0 sm:bottom-[5.25rem] sm:py-0 lg:justify-end", BLEED_X)}>
       <p className="inline-flex items-center gap-3 rounded-full bg-card/85 px-4 py-2 text-sm font-semibold text-ink shadow-float-sm ring-1 ring-line backdrop-blur-md" data-vertical-label>
-        <span className="text-muted">{HERO.showing}</span>
-        <span className="min-w-[10.5rem]">{verticalLabel(index)}</span>
+        <span className="whitespace-nowrap text-muted">{HERO.showing}</span>
+        <span className="whitespace-nowrap sm:min-w-[10.5rem]">{verticalLabel(index)}</span>
         <span aria-hidden className="flex gap-1">
           {HERO_ORDER.map((id, i) => (
             <span key={id} className={cx("h-1.5 rounded-full transition-all duration-500", i === index ? "w-5 bg-brand" : "w-1.5 bg-ink/20")} />

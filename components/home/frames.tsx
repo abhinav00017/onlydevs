@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FixScene } from "@/components/visuals";
 import { CTA, END, FAQ, FIX, HERO, HOW, KIT, PAIN, PRODUCTS, PROOF, WHO } from "@/lib/content";
 import { SITE, demoUrl, getVertical } from "@/lib/site";
-import { BookButton, ButtonLink, Container, ExternalLink, H2, LEAD, cx } from "@/components/site/ui";
+import { BLEED_X, BookButton, ButtonLink, Container, ExternalLink, H2, LEAD, cx } from "@/components/site/ui";
 import { HeadlineTurns } from "@/components/hero/HeadlineTurns";
 import { HeroStage } from "@/components/hero/HeroStage";
 import { KitBuilder } from "./KitBuilder";
@@ -22,15 +22,18 @@ export function HeroFrame() {
         {/* A soft wash behind the words, so they stay easy to read over the scene. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 hidden bg-linear-to-b from-canvas via-canvas/75 to-transparent to-60% sm:block lg:right-auto lg:w-[62%] lg:bg-linear-to-r lg:from-canvas lg:via-canvas/70 lg:via-55% lg:to-transparent lg:to-100%"
+          className="pointer-events-none absolute inset-0 hidden bg-linear-to-b from-canvas via-canvas/75 to-transparent to-60% sm:block lg:right-auto lg:w-[52%] lg:bg-linear-to-r lg:from-canvas lg:via-canvas/70 lg:via-60% lg:to-transparent lg:to-100%"
         />
-        <Container className="relative pt-28 sm:flex sm:h-full sm:pt-32 lg:items-center lg:pt-10">
-          <div className="max-w-xl sm:pointer-events-auto lg:max-w-[min(40rem,46vw)]">
-            <h1 id="hero-title" className="text-[2.5rem] leading-[1.06] font-bold tracking-tight sm:text-6xl sm:leading-[1.04] lg:max-w-[min(36rem,40vw)] lg:text-[clamp(3rem,min(4.4vw,8.2svh),4.5rem)] lg:leading-[1.03]">
+        <div className={cx("relative pt-28 sm:flex sm:h-full sm:pt-32 lg:items-center lg:pt-10", BLEED_X)}>
+          <div className="max-w-xl sm:pointer-events-auto lg:max-w-[42vw]">
+            <h1
+              id="hero-title"
+              className="text-[2.5rem] leading-[1.06] font-bold tracking-tight sm:text-6xl sm:leading-[1.04] lg:text-[clamp(3rem,min(4.3vw,8.4svh),9rem)] lg:leading-[1.02]"
+            >
               <span className="block text-balance">{HERO.title}</span>
               <HeadlineTurns turns={HERO.turns} className="mt-1 block" />
             </h1>
-            <p className={cx(LEAD, "mt-6 max-w-lg text-ink/70")}>{HERO.line}</p>
+            <p className={cx(LEAD, "mt-6 max-w-lg text-ink/70 lg:max-w-[min(36rem,34vw)] lg:text-[clamp(1.25rem,1.3vw,1.6rem)]")}>{HERO.line}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <BookButton />
               <ButtonLink href="/demos" variant="secondary">
@@ -38,7 +41,7 @@ export function HeroFrame() {
               </ButtonLink>
             </div>
           </div>
-        </Container>
+        </div>
       </div>
       <HeroStage className="relative mt-4 flex h-[30rem] flex-col overflow-hidden sm:absolute sm:inset-0 sm:mt-0 sm:h-auto" />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-b from-transparent to-canvas sm:h-16" />

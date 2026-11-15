@@ -4,7 +4,7 @@ import { CTA, NAV } from "@/lib/content";
 import { SITE } from "@/lib/site";
 import { HeaderShell } from "./HeaderShell";
 import { MobileMenu } from "./MobileMenu";
-import { BookButton } from "./ui";
+import { BLEED_X, BookButton, cx } from "./ui";
 
 export function Header() {
   return (
@@ -15,7 +15,7 @@ export function Header() {
       >
         Skip to content
       </a>
-      <div className="relative mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+      <div className={cx("relative flex h-16 w-full items-center justify-between gap-3", BLEED_X)}>
         <Link href="/" className="shrink-0 rounded-md" aria-label={`${SITE.name} home`}>
           <Image src="/brand/onlydevs-wordmark.png" alt={SITE.name} width={1256} height={440} priority className="h-8 w-auto sm:h-9" />
         </Link>

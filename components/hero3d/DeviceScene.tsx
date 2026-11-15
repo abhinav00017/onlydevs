@@ -135,8 +135,8 @@ function Rig({ progress, children }: { progress: DeviceSceneProps["progress"]; c
     const fov = 24;
     const t = Math.tan(((fov / 2) * Math.PI) / 180);
     const wide = aspect >= 1.15;
-    const fw = wide ? 0.45 : 0.9;
-    const fh = wide ? 0.66 : 0.42;
+    const fw = wide ? 0.66 : 0.9;
+    const fh = wide ? 0.82 : 0.42;
     const d = Math.max(COMPOSITION.width / (fw * 2 * t * aspect), COMPOSITION.height / (fh * 2 * t));
     const dir = new Vector3(0.1, 0.3, 1).normalize();
     const position = COMPOSITION.center.clone().addScaledVector(dir, d);
@@ -144,7 +144,7 @@ function Rig({ progress, children }: { progress: DeviceSceneProps["progress"]; c
     const right = new Vector3().crossVectors(forward, UP).normalize();
     const up = new Vector3().crossVectors(right, forward).normalize();
     // Where the devices' centre should land on screen, in -1..1.
-    const ndc = wide ? { x: 0.5, y: -0.04 } : { x: 0, y: -0.42 };
+    const ndc = wide ? { x: 0.52, y: -0.06 } : { x: 0, y: -0.42 };
     const aim = COMPOSITION.center
       .clone()
       .addScaledVector(right, -ndc.x * d * t * aspect)

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BOTTOM_BAR, CTA } from "@/lib/content";
+import { BLEED_X, cx } from "./ui";
 
 /** The slim bar that stays at the bottom of every page. Hidden on /book, where the form is the action. */
 export function BottomBar() {
@@ -10,7 +11,7 @@ export function BottomBar() {
   if (pathname === "/book") return null;
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line/80 bg-card/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+      <div className={cx("flex h-14 w-full items-center justify-between gap-3", BLEED_X)}>
         <p className="truncate text-sm font-medium text-muted">{BOTTOM_BAR.line}</p>
         <Link
           href="/book"
