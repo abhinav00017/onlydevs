@@ -216,7 +216,8 @@ function StepBackdrop({ index }: { index: number }) {
 function VerticalLabel({ index }: { index: number }) {
   return (
     <div className={cx("pointer-events-none relative z-10 order-first flex justify-center pb-5 sm:absolute sm:order-none sm:inset-x-0 sm:bottom-[5.25rem] sm:py-0 lg:justify-end", BLEED_X)}>
-      <p className="inline-flex items-center gap-3 rounded-full bg-card/85 px-4 py-2 text-sm font-semibold text-ink shadow-float-sm ring-1 ring-line backdrop-blur-md" data-vertical-label>
+      {/* lg:mr keeps the label clear of Ogi's chat button, which sits bottom-right above the bottom bar. */}
+      <p className="inline-flex items-center gap-3 rounded-full bg-card/85 px-4 py-2 text-sm font-semibold text-ink shadow-float-sm ring-1 ring-line backdrop-blur-md lg:mr-[4.5rem]" data-vertical-label>
         <span className="whitespace-nowrap text-muted">{HERO.showing}</span>
         <span className="whitespace-nowrap sm:min-w-[10.5rem]">{verticalLabel(index)}</span>
         <span aria-hidden className="flex gap-1">
