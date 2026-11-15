@@ -24,3 +24,7 @@ metadata:
 - "Book a free call" form: until an email-sending key exists for this project, the form opens the visitor's email app with a prefilled message to onlydevs2002@gmail.com. A server email sender comes later.
 - Ogi on this site in v1: the 3D/plush mascot and a "Try Ogi live" link to the clinic demo. A live company-mode chat comes later (it needs the Ogi engine from the demo hub).
 - Demo links point to https://od-demo-lyart.vercel.app until demos.onlydevs.co.in is live. One constant in lib/site.ts.
+
+## 2026-11-15 (Ogi's role, from Abhinav via the main session)
+
+- Ogi is not the site's guide and is not central. It appears only as one of our two products: on the home page Products section and on /products, as "an AI assistant for your website", shown with a mock chat card, not the mascot. "Try Ogi live" links to the clinic demo. No Ogi in the hero, fix scenes, stress-free frame, vertical cards, kit builder, end frame, header or bottom bar. Pages do not use Ogi3D or Ogi3DFallback. This overrides the storyboard's "Ogi as the guide".

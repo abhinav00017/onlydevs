@@ -1,15 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { BottomBar } from "@/components/site/BottomBar";
+import { Footer } from "@/components/site/Footer";
+import { Header } from "@/components/site/Header";
+import { JsonLd, organizationJsonLd } from "@/components/site/JsonLd";
+import { META } from "@/lib/content";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(`https://${SITE.domain}`),
-  title: { default: "onlydevs: software that makes business easy and stress-free", template: "%s | onlydevs" },
-  description:
-    "onlydevs builds and looks after websites, online orders and bookings, CRMs, reminders, dashboards and an AI assistant for local businesses and growing teams.",
+  metadataBase: new URL(SITE.url),
+  title: { default: META.home.title, template: "%s | onlydevs" },
+  description: META.home.description,
+  applicationName: SITE.name,
+  openGraph: { type: "website", siteName: SITE.name, locale: "en_IN", url: "/" },
+  twitter: { card: "summary" },
 };
 
 export const viewport: Viewport = { themeColor: "#F2F7F8" };
@@ -17,7 +24,15 @@ export const viewport: Viewport = { themeColor: "#F2F7F8" };
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${jakarta.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="flex min-h-full flex-col font-sans">
+        <JsonLd data={organizationJsonLd()} />
+        <Header />
+        <main id="main" className="flex-1">
+          {children}
+        </main>
+        <Footer />
+        <BottomBar />
+      </body>
     </html>
   );
 }

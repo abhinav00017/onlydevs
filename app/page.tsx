@@ -1,13 +1,45 @@
-import { SITE } from "@/lib/site";
+import type { Metadata } from "next";
+import { ChaosStage } from "@/components/home/ChaosStage";
+import {
+  EndFrame,
+  FaqFrame,
+  FixFrame,
+  FoundersFrame,
+  HeroFrame,
+  HowFrame,
+  KitFrame,
+  PainFrame,
+  ProductsFrame,
+  ProofFrame,
+  WhoFrame,
+} from "@/components/home/frames";
+import { StressFree } from "@/components/home/StressFree";
+import { META } from "@/lib/content";
 
-/** Placeholder. The real home page follows docs/storyboard.html. */
+export const metadata: Metadata = {
+  title: { absolute: META.home.title },
+  description: META.home.description,
+  alternates: { canonical: "/" },
+};
+
+/** The home page, frames 1 to 12 of docs/storyboard.html. */
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-4 px-4">
-      <h1 className="text-5xl font-bold tracking-tight">
-        onlydevs<span className="text-brand">.</span>
-      </h1>
-      <p className="text-lg text-muted">{SITE.tagline}</p>
-    </main>
+    <>
+      <ChaosStage>
+        <HeroFrame />
+        <ProofFrame />
+        <PainFrame />
+      </ChaosStage>
+      <FixFrame />
+      <StressFree />
+      <WhoFrame />
+      <ProductsFrame />
+      <KitFrame />
+      <HowFrame />
+      <FoundersFrame />
+      <FaqFrame />
+      <EndFrame />
+    </>
   );
 }

@@ -42,3 +42,45 @@ body {
   background: var(--od-brand-soft);
   color: var(--od-ink);
 }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: clip;
+}
+
+/* One clear focus ring everywhere, for keyboard users. */
+:focus-visible {
+  outline: 3px solid var(--od-brand);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Anchored sections clear the sticky header. */
+[id] {
+  scroll-margin-top: 6rem;
+}
+
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* "Reduce motion": no smooth scroll, no transitions, no animations. Scroll effects check it in code too. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
