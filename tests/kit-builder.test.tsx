@@ -1,8 +1,8 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// The 3D scenes are another agent's work; here they are plain stand-ins that show the blocks they receive.
-vi.mock("@/components/three", () => ({
+// The visual is tested in tests/visuals.test.tsx; here it is a plain stand-in that shows the blocks it receives.
+vi.mock("@/components/visuals", () => ({
   KitBlocks: ({ blocks }: { blocks: readonly string[] }) => <div data-testid="kit-blocks">{blocks.join(",")}</div>,
 }));
 

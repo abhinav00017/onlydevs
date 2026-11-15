@@ -33,7 +33,8 @@ The onlydevs company website, for onlydevs.co.in. Personal project of Abhinav an
 ## Style
 
 - onlydevs brand: light canvas (#F2F7F8 to #EAF2F3), one purple (#6F32D6), ink #14272F, Plus Jakarta Sans, big type, lots of white space.
-- Modern, with real 3D (React Three Fiber), but fast: text first, 3D after, lighter on phones, still for "reduce motion".
+- No 3D, no WebGL. Real photos of business moments with our product's screens floating over them, built in HTML and CSS (`components/visuals`). Soft depth and motion, still for "reduce motion".
+- Photos are free Unsplash photos only, loaded from images.unsplash.com and listed in `lib/photos.ts`. Premium and global; never fixed to one country. Sample data in the screens is made-up and neutral.
 
 ## How we work
 

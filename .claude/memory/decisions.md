@@ -35,3 +35,9 @@ metadata:
 - 15 Nov 2026: the code-built 3D looked unnatural (toy-like primitives, flat materials, no real lighting) and its runtime is about 243 KB gzip. Abhinav chose "Real photos + floating UI": real photos of business moments (cafe counter, clinic desk, site visit, event crowd, sales desk) with our actual app screens floating over them in soft depth as you scroll. No WebGL; CSS depth and motion only. The 3D branch (7115a1a) is not merged; only reusable ideas (reduced-motion handling, kit block logic) may be kept.
 - 15 Nov 2026: the audience is global, not India-only. Photos and copy must look premium ("posh") and suit foreign clients too. Never fix anything to India.
 - 15 Nov 2026 (main session default): photos are free-licence stock (Unsplash), loaded from Unsplash's image service (no files downloaded into the repo), shown to Abhinav for approval before going live.
+
+## 2026-11-15 (build of "Real photos + floating UI", awaiting Abhinav's photo approval)
+
+- WebGL removed: components/three, three, @react-three/fiber, @react-three/drei and @types/three are gone. The scenes are now components/visuals (HeroScene, FixScene, CalmScene, KitBlocks), in HTML and CSS with motion.
+- Eight Unsplash photos, all checked as "Unsplash License" (no Unsplash+), listed in lib/photos.ts. Loaded through next/image from images.unsplash.com only, at one fixed source size. No image files in the repo.
+- The hero photo uses next/image `preload` (Next 16 renamed `priority` to `preload`). No other photo preloads.

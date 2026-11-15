@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { KitBlocks } from "@/components/three";
+import { KitBlocks } from "@/components/visuals";
 import { KIT, blockName } from "@/lib/content";
 import { BLOCK_IDS, SUGGESTED_BLOCKS, kitHref, sortBlocks, type BlockId, type BusinessId } from "@/lib/kit";
-import { InView3D } from "./InView3D";
 
 /**
  * Frame 8: build your kit. Pick a business, get suggested blocks, tap to add or remove,
@@ -84,9 +83,7 @@ export function KitBuilder() {
       </div>
 
       <div className="lg:sticky lg:top-24 lg:self-start">
-        <InView3D className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-line bg-card">
-          <KitBlocks blocks={blocks} className="h-full w-full" />
-        </InView3D>
+        <KitBlocks blocks={blocks} business={business} className="aspect-[4/3] w-full overflow-hidden rounded-3xl border border-line bg-card" />
         <p aria-live="polite" className="mt-5 text-base font-semibold text-ink">
           {blocks.length ? KIT.countLabel(blocks.length) : KIT.empty}
         </p>

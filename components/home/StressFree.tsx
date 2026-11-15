@@ -2,9 +2,8 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
-import { CalmScene } from "@/components/three";
+import { CalmScene } from "@/components/visuals";
 import { CALM } from "@/lib/content";
-import { InView3D } from "./InView3D";
 
 const CANVAS = "#F2F7F8";
 const SOFT_PURPLE = "#EDE4FB";
@@ -32,9 +31,7 @@ export function StressFree() {
           </h2>
           <p className="mt-6 max-w-md text-lg text-muted sm:text-xl">{CALM.line}</p>
         </div>
-        <InView3D className="relative mx-auto aspect-square w-full max-w-md">
-          <CalmScene className="h-full w-full" />
-        </InView3D>
+        <CalmScene className="mx-auto aspect-square w-full max-w-md" />
       </div>
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-b from-transparent to-canvas" />
     </motion.section>

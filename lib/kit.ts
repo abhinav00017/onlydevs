@@ -4,7 +4,7 @@ import type { VerticalId } from "./site";
 /**
  * The kit builder's data and its query-param format.
  * /book?business=cafe&kit=website,orders,ogi opens the call form with that kit filled in.
- * Block ids match what the 3D <KitBlocks> expects.
+ * Block ids match what <KitBlocks> (components/visuals) shows.
  */
 export const BLOCK_IDS = ["website", "orders", "ticketing", "crm", "ogi", "reminders", "dashboard"] as const;
 export type BlockId = (typeof BLOCK_IDS)[number];

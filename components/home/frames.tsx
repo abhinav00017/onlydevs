@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { FixScene } from "@/components/three";
+import { FixScene } from "@/components/visuals";
 import { CTA, END, FAQ, FIX, HERO, HOW, KIT, PAIN, PRODUCTS, PROOF, WHO } from "@/lib/content";
 import { SITE, demoUrl, getVertical } from "@/lib/site";
 import { BookButton, ButtonLink, Container, ExternalLink, H2, LEAD, cx } from "@/components/site/ui";
 import { ChaosSlot } from "./ChaosStage";
-import { InView3D } from "./InView3D";
 import { KitBuilder } from "./KitBuilder";
 import { PainWords } from "./PainWords";
 import { FaqList, FoundersNoteCard, IndustryGrid, ProductBlocks } from "./shared";
@@ -119,9 +118,7 @@ export function FixFrame() {
                   <span aria-hidden>→</span>
                 </Link>
               </div>
-              <InView3D className="relative mx-auto aspect-square w-full max-w-md">
-                <FixScene step={scene.step} accessory="none" className="h-full w-full" />
-              </InView3D>
+              <FixScene step={scene.step} className="mx-auto aspect-square w-full max-w-[32rem]" />
             </Container>
           </li>
         ))}

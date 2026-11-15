@@ -6,7 +6,8 @@
  * channel; "the founders", plural; email is the only contact; price on call; no made-up logos, numbers,
  * reviews or testimonials. tests/content.test.ts checks these.
  */
-import type { FixStep } from "@/components/three/types";
+import type { FixStep } from "@/components/visuals/types";
+import type { PhotoId } from "./photos";
 import type { BlockId, BusinessId } from "./kit";
 import type { VerticalId } from "./site";
 
@@ -133,6 +134,16 @@ export const CALM = {
   title: "Everything in one place. Stress-free.",
   line: "Your customers, orders, bookings and leads, calm on one screen.",
 } as const;
+
+/** Short labels shown on the photos (components/visuals). The photos themselves are listed in lib/photos.ts. */
+export const PHOTO_CAPTIONS: Partial<Record<PhotoId, string>> = {
+  cafe: "A cafe counter",
+  clinic: "A clinic front desk",
+  property: "A property viewing",
+  assistant: "A customer, after hours",
+  events: "An event night",
+  team: "A sales team",
+};
 
 export const WHO = {
   title: "Built for businesses like yours.",
